@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Best Albums</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #111;
+        color: white;
+        overflow-x: auto;
+      }
+      header {
+        background: #1db954;
+        padding: 10px;
+        text-align: center;
+        font-size: 20px;
+      }
+      .years-container {
+        display: flex;
+        align-items: flex-start;
+        padding: 10px;
+        gap: 20px;
+      }
+      .year-column {
+        flex: 0 0 auto;
+        width: 180px;
+      }
+      .year-title {
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+        background: #222;
+        padding: 5px;
+        border-radius: 5px;
+      }
+      .album {
+        width: 100%;
+        margin-bottom: 15px;
+        cursor: pointer;
+      }
+      .album img {
+        width: 100%;
+        border-radius: 8px;
+      }
+      .album-info {
+        font-size: 13px;
+        margin-top: 5px;
+        text-align: center;
+        line-height: 1.3em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>🎵 My Best Albums</header>
+    <div class="years-container" id="yearsContainer"></div>
+
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <script>
+      const CONFIG = {
+        SHEET_CSV_URL:
+          "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
+        SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce",
+        REDIRECT_URI: "https://My-Best-Albums.com/",
+      };
+
+      let token = null;
+      let albumsData = [];
+
+      function authenticateSpotify() {
+        const scope =
+          "user-modify-playback-state user-read-playback-state streaming";
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${
+          CONFIG.SPOTIFY_CLIENT_ID
+        }&redirect_uri=${encodeURIComponent(
+          CONFIG.REDIRECT_URI
+        )}&scope=${encodeURIComponent(
+          scope
+        )}&response_type=token&show_dialog=true`;
+        window.location = authUrl;
+      }
+
+      function getTokenFromUrl() {
+        const hash = window.location.hash
+          .substring(1)
+          .split("&")
+          .reduce((acc, item) => {
+            const parts = item.split("=");
+            acc[parts[0]] = decodeURIComponent(parts[1]);
+            return acc;
+          }, {});
+        return hash.access_token;
+      }
+
+      async function fetchAlbums() {
+        const response = await fetch(CONFIG.SHEET_CSV_URL);
+        const text = await response.text();
+        Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            albumsData = results.data;
+            renderAllYears();
+            scrollToCurrentYear();
+          },
+        });
+      }
+
+      function renderAllYears() {
+        const container = document.getElementById("yearsContainer");
+        container.innerHTML = "";
+
+        const years = [...new Set(albumsData.map((a) => a.Year))].sort();
+
+        years.forEach((year) => {
+          const yearCol = document.createElement("div");
+          yearCol.className = "year-column";
+
+          const yearTitle = document.createElement("div");
+          yearTitle.className = "year-title";
+          yearTitle.innerText = year;
+          yearCol.appendChild(yearTitle);
+
+          const albumsOfYear = albumsData
+            .filter((a) => a.Year === year)
+            .sort((a, b) => Number(a.Rank) - Number(b.Rank));
+
+          albumsOfYear.forEach((a) => {
+            // Split "Artist - Album"
+            const [artist, albumTitle] = a["Album-Artist"]
+              .split(" - ")
+              .map((s) => s.trim());
+
+            const div = document.createElement("div");
+            div.className = "album";
+            div.innerHTML = `
+        <img src="${a.CoverURL}" alt="${albumTitle}" />
+        <div class="album-info">${a.Rank} - ${albumTitle}<br><small>${artist}</small></div>
+      `;
+            div.onclick = () => playAlbum(a.SpotifyURI);
+            yearCol.appendChild(div);
+          });
+
+          container.appendChild(yearCol);
+        });
+      }
+
+      function scrollToCurrentYear() {
+        const currentYear = new Date().getFullYear().toString();
+        const yearCol = [...document.querySelectorAll(".year-title")].find(
+          (el) => el.innerText === currentYear
+        );
+        if (yearCol) {
+          yearCol.scrollIntoView({ behavior: "smooth", inline: "end" });
+        }
+      }
+
+      function playAlbum(uri) {
+        if (!token) {
+          alert("Please log in to Spotify first!");
+          authenticateSpotify();
+          return;
+        }
+        fetch(`https://api.spotify.com/v1/me/player/play`, {
+          method: "PUT",
+          body: JSON.stringify({ context_uri: uri }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+
+      window.onload = () => {
+        token = getTokenFromUrl();
+        fetchAlbums();
+      };
+    </script>
+  </body>
+</html>
