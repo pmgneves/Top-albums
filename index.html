@@ -11,54 +11,149 @@
         background: #111;
         color: white;
         overflow-x: auto;
+        overflow-y: auto;
       }
       header {
-        background: #1db954;
-        padding: 10px;
-        text-align: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background: #111;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
         font-size: 20px;
+        z-index: 100;
+        gap: 15px;
+        border-bottom: 2px solid #222;
       }
+      .decade-btn {
+        background: #222;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 3px;
+        font-size: 14px;
+      }
+
+      .main-container {
+        display: flex;
+        margin-top: 0px;
+      }
+
+      .rank-column {
+        position: fixed;
+        left: 0;
+        top: 50px;
+        width: 30px;
+        bottom: 0;
+        background: #111;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      #rankScroller {
+        will-change: transform;
+        padding-top: 50px; /* match header + year-title */
+      }
+
+      .rank-number {
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #ffffff;
+        box-sizing: border-box;
+        width: 100%;
+      }
+
       .years-container {
         display: flex;
         align-items: flex-start;
-        padding: 10px;
+        padding: 0px 10px 10px 60px;
         gap: 20px;
       }
       .year-column {
         flex: 0 0 auto;
         width: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
       }
       .year-title {
-        font-size: 18px;
+        position: sticky;
+        top: 50px;
+        font-size: 16px;
         font-weight: bold;
-        text-align: center;
-        margin-bottom: 10px;
-        background: #222;
-        padding: 5px;
+        background: #111;
+        padding: 8px 5px;
         border-radius: 5px;
+        text-align: center;
+        width: 100%;
+        z-index: 10;
       }
+
+      .albums-wrapper {
+        margin-top: 10px;
+        padding-top: 50px; /* PUSH DOWN albums so they don't overlap sticky year-title */
+      }
+
       .album {
         width: 100%;
-        margin-bottom: 15px;
+        margin-bottom: 5px;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 250px;
       }
-      .album img {
+      .album img,
+      .no-cover {
         width: 100%;
+        height: 180px;
         border-radius: 8px;
+        object-fit: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 5px;
+      }
+      .no-cover {
+        background: #222;
       }
       .album-info {
-        font-size: 13px;
-        margin-top: 5px;
         text-align: center;
-        line-height: 1.3em;
+        margin-top: 3px;
+        font-size: 14px;
+        line-height: 1.2em;
       }
     </style>
   </head>
   <body>
-    <header>🎵 My Best Albums</header>
-    <div class="years-container" id="yearsContainer"></div>
+    <header>
+      Top Albums by Year
+      <button class="decade-btn" onclick="scrollToDecade('199')">1990s</button>
+      <button class="decade-btn" onclick="scrollToDecade('200')">2000s</button>
+      <button class="decade-btn" onclick="scrollToDecade('201')">2010s</button>
+      <button class="decade-btn" onclick="scrollToDecade('202')">2020s</button>
+    </header>
 
-    <!-- PapaParse for CSV parsing -->
+    <div class="main-container">
+      <div class="rank-column" id="rankColumn">
+        <div id="rankScroller"></div>
+      </div>
+
+      <div class="years-container" id="yearsContainer"></div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
     <script>
@@ -72,91 +167,98 @@
       let token = null;
       let albumsData = [];
 
-      function authenticateSpotify() {
-        const scope =
-          "user-modify-playback-state user-read-playback-state streaming";
-        const authUrl = `https://accounts.spotify.com/authorize?client_id=${
-          CONFIG.SPOTIFY_CLIENT_ID
-        }&redirect_uri=${encodeURIComponent(
-          CONFIG.REDIRECT_URI
-        )}&scope=${encodeURIComponent(
-          scope
-        )}&response_type=token&show_dialog=true`;
-        window.location = authUrl;
-      }
-
-      function getTokenFromUrl() {
-        const hash = window.location.hash
-          .substring(1)
-          .split("&")
-          .reduce((acc, item) => {
-            const parts = item.split("=");
-            acc[parts[0]] = decodeURIComponent(parts[1]);
-            return acc;
-          }, {});
-        return hash.access_token;
-      }
-
       async function fetchAlbums() {
-        const response = await fetch(CONFIG.SHEET_CSV_URL);
-        const text = await response.text();
-        Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            albumsData = results.data;
-            renderAllYears();
-            scrollToCurrentYear();
-          },
-        });
+        try {
+          const response = await fetch(CONFIG.SHEET_CSV_URL);
+          const text = await response.text();
+          Papa.parse(text, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+              albumsData = results.data;
+              renderAlbums();
+            },
+          });
+        } catch (err) {
+          console.error("Error fetching CSV:", err);
+        }
       }
 
-      function renderAllYears() {
+      function renderAlbums() {
         const container = document.getElementById("yearsContainer");
+        const rankScroller = document.getElementById("rankScroller");
         container.innerHTML = "";
+        rankScroller.innerHTML = "";
 
         const years = [...new Set(albumsData.map((a) => a.Year))].sort();
+        let globalRank = 1;
 
         years.forEach((year) => {
           const yearCol = document.createElement("div");
           yearCol.className = "year-column";
 
-          const yearTitle = document.createElement("div");
-          yearTitle.className = "year-title";
-          yearTitle.innerText = year;
-          yearCol.appendChild(yearTitle);
+          const yearDiv = document.createElement("div");
+          yearDiv.className = "year-title";
+          yearDiv.innerText = year;
+          yearCol.appendChild(yearDiv);
+
+          const albumsWrapper = document.createElement("div");
+          albumsWrapper.className = "albums-wrapper";
 
           const albumsOfYear = albumsData
             .filter((a) => a.Year === year)
             .sort((a, b) => Number(a.Rank) - Number(b.Rank));
 
           albumsOfYear.forEach((a) => {
-            // Split "Artist - Album"
-            const [artist, albumTitle] = a["Album-Artist"]
-              .split(" - ")
-              .map((s) => s.trim());
-
+            const [artist, albumTitle] = (
+              a["Album-Artist"]?.split(" - ") || ["Unknown", "Unknown"]
+            ).map((s) => s.trim());
             const div = document.createElement("div");
             div.className = "album";
-            div.innerHTML = `
-        <img src="${a.CoverURL}" alt="${albumTitle}" />
-        <div class="album-info">${a.Rank} - ${albumTitle}<br><small>${artist}</small></div>
-      `;
+
+            let infoDiv = document.createElement("div");
+            infoDiv.className = "album-info";
+            infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
+
+            div.appendChild(
+              a.CoverURL ? createCoverImg(a.CoverURL) : createNoCover()
+            );
+            div.appendChild(infoDiv);
             div.onclick = () => playAlbum(a.SpotifyURI);
-            yearCol.appendChild(div);
+
+            albumsWrapper.appendChild(div);
+
+            const rankDiv = document.createElement("div");
+            rankDiv.className = "rank-number";
+            rankDiv.innerText = globalRank++;
+            rankScroller.appendChild(rankDiv);
           });
 
+          yearCol.appendChild(albumsWrapper);
           container.appendChild(yearCol);
         });
       }
 
-      function scrollToCurrentYear() {
-        const currentYear = new Date().getFullYear().toString();
-        const yearCol = [...document.querySelectorAll(".year-title")].find(
-          (el) => el.innerText === currentYear
+      function createCoverImg(url) {
+        const img = document.createElement("img");
+        img.src = url;
+        return img;
+      }
+
+      function createNoCover() {
+        const div = document.createElement("div");
+        div.className = "no-cover";
+        div.innerText = "Album not on Spotify";
+        return div;
+      }
+
+      function scrollToDecade(decadePrefix) {
+        const container = document.getElementById("yearsContainer");
+        const target = [...container.children].find((col) =>
+          col.firstChild.innerText.startsWith(decadePrefix)
         );
-        if (yearCol) {
-          yearCol.scrollIntoView({ behavior: "smooth", inline: "end" });
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", inline: "start" });
         }
       }
 
@@ -176,10 +278,45 @@
         });
       }
 
+      function updateRankScrollerPosition() {
+        const rankScroller = document.getElementById("rankScroller");
+        rankScroller.style.transform = `translateY(${-window.scrollY}px)`;
+      }
+      window.addEventListener("scroll", updateRankScrollerPosition, {
+        passive: true,
+      });
+      window.addEventListener("resize", updateRankScrollerPosition);
+
       window.onload = () => {
         token = getTokenFromUrl();
         fetchAlbums();
+        updateRankScrollerPosition();
       };
+
+      function getTokenFromUrl() {
+        const hash = window.location.hash
+          .substring(1)
+          .split("&")
+          .reduce((acc, item) => {
+            const parts = item.split("=");
+            acc[parts[0]] = decodeURIComponent(parts[1]);
+            return acc;
+          }, {});
+        return hash.access_token;
+      }
+
+      function authenticateSpotify() {
+        const scope =
+          "user-modify-playback-state user-read-playback-state streaming";
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${
+          CONFIG.SPOTIFY_CLIENT_ID
+        }&redirect_uri=${encodeURIComponent(
+          CONFIG.REDIRECT_URI
+        )}&scope=${encodeURIComponent(
+          scope
+        )}&response_type=token&show_dialog=true`;
+        window.location = authUrl;
+      }
     </script>
   </body>
 </html>
