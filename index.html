@@ -57,7 +57,7 @@
         overflow: hidden;
       }
 
-      /* CHANGED: grid so rows match album height; padding set by JS */
+      /* rows driven by JS-calculated --row-h */
       #rankScroller {
         will-change: transform;
         display: grid;
@@ -65,7 +65,6 @@
         padding-top: 0; /* JS will set exact top offset */
       }
 
-      /* CHANGED: row height driven by the same CSS var */
       .rank-number {
         height: var(--row-h, 252px);
         display: flex;
@@ -75,6 +74,8 @@
         color: #ffffff;
         box-sizing: border-box;
         width: 100%;
+        position: relative;
+        z-index: 5; /* above the background stripes */
       }
 
       .years-container {
@@ -82,7 +83,9 @@
         align-items: flex-start;
         padding: 0px 10px 10px 60px;
         gap: 20px;
+        position: relative; /* for the full-width striped background */
       }
+
       .year-column {
         flex: 0 0 auto;
         width: 180px;
@@ -91,6 +94,7 @@
         align-items: center;
         position: relative;
       }
+
       .year-title {
         position: sticky;
         top: 50px;
@@ -106,66 +110,132 @@
 
       .albums-wrapper {
         margin-top: 10px;
-        padding-top: 60px; /* PUSH DOWN albums so they don't overlap sticky year-title */
+        padding-top: 50px; /* PUSH DOWN albums so they don't overlap sticky year-title */
+        position: relative;
       }
 
+      /* ========== IMPORTANT: 5px top spacing so background shows behind album ========== */
       .album {
         width: 100%;
         height: auto; /* let the content define the height */
-        margin-bottom: 0; /* remove uncontrolled spacing */
+        margin-top: 5px; /* <-- top breathing space */
+        margin-bottom: 0;
         cursor: pointer;
+        position: relative; /* ensure album content sits above the background stripes */
+        z-index: 6; /* above the striped background so everything is visible */
       }
 
       .album img,
       .album .no-cover {
         width: 100%;
         height: 180px; /* fixed cover height */
-        display: block; /* removes inline whitespace */
-        padding: 0; /* no padding inside the box */
-        margin: 0; /* no margin */
+        display: block;
+        padding: 0;
+        margin: 0;
         border-radius: 8px;
       }
 
       .album-info {
         height: 72px; /* 4 lines: 18px each */
-        margin: 0; /* remove margin-top: 3px */
-        padding-top: 4px; /* small visual breathing space */
+        margin: 0;
+        padding-top: 4px;
         font-size: 13px;
-        line-height: 18px; /* exact line height */
+        line-height: 18px;
         text-align: center;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
       }
-      /* Shared background for albums + rank numbers */
+
+      /* Shared background for albums + rank numbers (unchanged for 1-3 and 11-20) */
       .albums-wrapper .album:nth-child(1),
       #rankScroller .rank-number:nth-child(1) {
-        background: rgba(212, 175, 55, 0.2); /* transparent gold */
+        background: rgba(212, 175, 55, 0.2);
         box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
       }
-
       .albums-wrapper .album:nth-child(2),
       #rankScroller .rank-number:nth-child(2) {
-        background: rgba(192, 192, 192, 0.2); /* transparent silver */
+        background: rgba(192, 192, 192, 0.2);
         box-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
       }
-
       .albums-wrapper .album:nth-child(3),
       #rankScroller .rank-number:nth-child(3) {
-        background: rgba(205, 127, 50, 0.2); /* transparent bronze */
+        background: rgba(205, 127, 50, 0.2);
         box-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
       }
 
+      /* ===== CHANGED: rows 4-10 now lighter blue (closer to 11-20 but lighter) ===== */
       .albums-wrapper .album:nth-child(n + 4):nth-child(-n + 10),
       #rankScroller .rank-number:nth-child(n + 4):nth-child(-n + 10) {
-        background: rgba(173, 216, 230, 0.15); /* light blue */
-        box-shadow: 0 0 6px rgba(173, 216, 230, 0.4);
+        background: rgba(140, 184, 245, 0.15); /* lighter blue */
+        box-shadow: 0 0 6px rgba(140, 184, 245, 0.35);
       }
 
+      /* 11-20 remains the original cornflower blue */
       .albums-wrapper .album:nth-child(n + 11):nth-child(-n + 20),
       #rankScroller .rank-number:nth-child(n + 11):nth-child(-n + 20) {
-        background: rgba(100, 149, 237, 0.15); /* greyish blue */
+        background: rgba(100, 149, 237, 0.15);
         box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
+      }
+
+      /*
+        Full-width striped background (blurred edges + mask).
+        Updated to use the new lighter-blue for the 4-10 band so background stripe matches objects.
+      */
+      .years-container::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: var(
+          --rows-offset,
+          0px
+        ); /* offset to where first album starts (relative to yearsContainer) */
+        height: var(
+          --stripe-cover,
+          0px
+        ); /* cover only N rows (N = min(totalAlbums, 20)) */
+        z-index: 1; /* behind albums but above page background */
+        pointer-events: none;
+
+        /* updated band colors: gold, silver, bronze, LIGHTER-BLUE (4-10), CORNFLOWER-BLUE (11-20) */
+        background-image: linear-gradient(
+          to bottom,
+          rgba(212, 175, 55, 0.2) 0%,
+          rgba(212, 175, 55, 0.2) 5%,
+          rgba(192, 192, 192, 0.2) 5%,
+          rgba(192, 192, 192, 0.2) 10%,
+          rgba(205, 127, 50, 0.2) 10%,
+          rgba(205, 127, 50, 0.2) 15%,
+          rgba(140, 184, 245, 0.15) 15%,
+          rgba(140, 184, 245, 0.15) 50%,
+          rgba(100, 149, 237, 0.15) 50%,
+          rgba(100, 149, 237, 0.15) 100%
+        );
+
+        /* tile height = 20 * row height (set from JS) */
+        background-size: 100% var(--stripe-block, 4000px);
+        background-repeat: no-repeat; /* do NOT repeat beyond the cover height */
+
+        /* subtle blur so the stripe edges fade under album rounded corners / margins */
+        filter: blur(6px) saturate(1.05);
+        opacity: 0.95;
+
+        /* mask edges left/right so the stripe visually fades into the page margins */
+        -webkit-mask-image: linear-gradient(
+          to right,
+          transparent 0px,
+          rgba(0, 0, 0, 1) 60px,
+          rgba(0, 0, 0, 1) calc(100% - 60px),
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          to right,
+          transparent 0px,
+          rgba(0, 0, 0, 1) 60px,
+          rgba(0, 0, 0, 1) calc(100% - 60px),
+          transparent 100%
+        );
       }
     </style>
   </head>
@@ -270,7 +340,7 @@
           container.appendChild(yearCol);
         });
 
-        // After DOM is painted, measure and sync rank layout
+        // After DOM is painted, measure and sync rank layout & background
         requestAnimationFrame(syncRankMetrics);
       }
 
@@ -279,15 +349,59 @@
         const firstAlbum = document.querySelector(".albums-wrapper .album");
         const rankScroller = document.getElementById("rankScroller");
         const firstYearTitle = document.querySelector(".year-title");
-        if (!firstAlbum || !rankScroller || !firstYearTitle) return;
+        const yearsContainer = document.getElementById("yearsContainer");
+        if (!firstAlbum || !rankScroller || !firstYearTitle || !yearsContainer)
+          return;
 
-        const albumH = Math.round(firstAlbum.getBoundingClientRect().height);
-        rankScroller.style.setProperty("--row-h", albumH + "px");
-        rankScroller.style.gridAutoRows = albumH + "px";
+        // measured album content height (does NOT include margin)
+        const albumContentH = firstAlbum.getBoundingClientRect().height;
 
-        // ✅ apply offset ONLY to rankScroller
+        // read computed top margin (we added margin-top:5px above)
+        const albumMarginTop = parseFloat(
+          getComputedStyle(firstAlbum).marginTop || "0"
+        );
+
+        // total visual row height that should drive rows and stripes
+        const totalRowH = albumContentH + albumMarginTop;
+
+        // set row height used by the rank grid
+        rankScroller.style.setProperty("--row-h", totalRowH + "px");
+        rankScroller.style.gridAutoRows = totalRowH + "px";
+        document.documentElement.style.setProperty("--row-h", totalRowH + "px");
+
+        // Keep original rankScroller padding calculation (year title height + wrapper margin)
         const yearTitleH = firstYearTitle.getBoundingClientRect().height;
-        rankScroller.style.paddingTop = yearTitleH + "px";
+        const wrapperMarginTop = parseFloat(
+          getComputedStyle(firstAlbum.parentElement).marginTop || "0"
+        );
+        const rowsOffsetFixed = yearTitleH + wrapperMarginTop;
+        rankScroller.style.paddingTop = rowsOffsetFixed + "px";
+
+        // --- compute rows offset relative to yearsContainer so background starts at album top ---
+        const yearsRect = yearsContainer.getBoundingClientRect();
+        const firstAlbumRect = firstAlbum.getBoundingClientRect();
+        const rowsOffsetForCSS = firstAlbumRect.top - yearsRect.top;
+        document.documentElement.style.setProperty(
+          "--rows-offset",
+          Math.max(0, rowsOffsetForCSS) + "px"
+        );
+
+        // compute how many albums exist (global), but limit to 20 rows for the background
+        const totalAlbums = document.querySelectorAll(
+          "#rankScroller .rank-number"
+        ).length;
+        const rowsToCover = Math.min(totalAlbums, 20);
+        const stripeCoverHeight = rowsToCover * totalRowH;
+
+        // supply CSS variables used by the pseudo-background
+        document.documentElement.style.setProperty(
+          "--stripe-block",
+          totalRowH * 20 + "px"
+        ); // tile block (20 rows)
+        document.documentElement.style.setProperty(
+          "--stripe-cover",
+          stripeCoverHeight + "px"
+        ); // actual cover height (only up to row 20)
       }
 
       function createCoverImg(url) {
