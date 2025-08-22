@@ -57,13 +57,17 @@
         overflow: hidden;
       }
 
+      /* CHANGED: grid so rows match album height; padding set by JS */
       #rankScroller {
         will-change: transform;
-        padding-top: 50px; /* match header + year-title */
+        display: grid;
+        grid-auto-rows: var(--row-h, 252px);
+        padding-top: 0; /* JS will set exact top offset */
       }
 
+      /* CHANGED: row height driven by the same CSS var */
       .rank-number {
-        height: 250px;
+        height: var(--row-h, 252px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -102,38 +106,66 @@
 
       .albums-wrapper {
         margin-top: 10px;
-        padding-top: 50px; /* PUSH DOWN albums so they don't overlap sticky year-title */
+        padding-top: 60px; /* PUSH DOWN albums so they don't overlap sticky year-title */
       }
 
       .album {
         width: 100%;
-        margin-bottom: 5px;
+        height: auto; /* let the content define the height */
+        margin-bottom: 0; /* remove uncontrolled spacing */
         cursor: pointer;
+      }
+
+      .album img,
+      .album .no-cover {
+        width: 100%;
+        height: 180px; /* fixed cover height */
+        display: block; /* removes inline whitespace */
+        padding: 0; /* no padding inside the box */
+        margin: 0; /* no margin */
+        border-radius: 8px;
+      }
+
+      .album-info {
+        height: 72px; /* 4 lines: 18px each */
+        margin: 0; /* remove margin-top: 3px */
+        padding-top: 4px; /* small visual breathing space */
+        font-size: 13px;
+        line-height: 18px; /* exact line height */
+        text-align: center;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        height: 250px;
+        justify-content: flex-start;
       }
-      .album img,
-      .no-cover {
-        width: 100%;
-        height: 180px;
-        border-radius: 8px;
-        object-fit: cover;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 5px;
+      /* Shared background for albums + rank numbers */
+      .albums-wrapper .album:nth-child(1),
+      #rankScroller .rank-number:nth-child(1) {
+        background: rgba(212, 175, 55, 0.2); /* transparent gold */
+        box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
       }
-      .no-cover {
-        background: #222;
-      }p
-      .album-info {
-        text-align: center;
-        margin-top: 3px;
-        font-size: 14px;
-        line-height: 1.2em;
+
+      .albums-wrapper .album:nth-child(2),
+      #rankScroller .rank-number:nth-child(2) {
+        background: rgba(192, 192, 192, 0.2); /* transparent silver */
+        box-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
+      }
+
+      .albums-wrapper .album:nth-child(3),
+      #rankScroller .rank-number:nth-child(3) {
+        background: rgba(205, 127, 50, 0.2); /* transparent bronze */
+        box-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
+      }
+
+      .albums-wrapper .album:nth-child(n + 4):nth-child(-n + 10),
+      #rankScroller .rank-number:nth-child(n + 4):nth-child(-n + 10) {
+        background: rgba(173, 216, 230, 0.15); /* light blue */
+        box-shadow: 0 0 6px rgba(173, 216, 230, 0.4);
+      }
+
+      .albums-wrapper .album:nth-child(n + 11):nth-child(-n + 20),
+      #rankScroller .rank-number:nth-child(n + 11):nth-child(-n + 20) {
+        background: rgba(100, 149, 237, 0.15); /* greyish blue */
+        box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
       }
     </style>
   </head>
@@ -237,6 +269,25 @@
           yearCol.appendChild(albumsWrapper);
           container.appendChild(yearCol);
         });
+
+        // After DOM is painted, measure and sync rank layout
+        requestAnimationFrame(syncRankMetrics);
+      }
+
+      // Measure first album and sync rank scroller spacing & offset
+      function syncRankMetrics() {
+        const firstAlbum = document.querySelector(".albums-wrapper .album");
+        const rankScroller = document.getElementById("rankScroller");
+        const firstYearTitle = document.querySelector(".year-title");
+        if (!firstAlbum || !rankScroller || !firstYearTitle) return;
+
+        const albumH = Math.round(firstAlbum.getBoundingClientRect().height);
+        rankScroller.style.setProperty("--row-h", albumH + "px");
+        rankScroller.style.gridAutoRows = albumH + "px";
+
+        // ✅ apply offset ONLY to rankScroller
+        const yearTitleH = firstYearTitle.getBoundingClientRect().height;
+        rankScroller.style.paddingTop = yearTitleH + "px";
       }
 
       function createCoverImg(url) {
@@ -278,19 +329,35 @@
         });
       }
 
+      // ---------- UPDATED: use measured offset so rank column accounts for year-title height ----------
       function updateRankScrollerPosition() {
         const rankScroller = document.getElementById("rankScroller");
-        rankScroller.style.transform = `translateY(${-window.scrollY}px)`;
+        const offset = parseFloat(rankScroller.dataset.offsetTop || 0);
+        rankScroller.style.transform = `translateY(${
+          offset - window.scrollY
+        }px)`;
       }
+
       window.addEventListener("scroll", updateRankScrollerPosition, {
         passive: true,
       });
-      window.addEventListener("resize", updateRankScrollerPosition);
+      window.addEventListener("resize", () => {
+        // Re-measure on resize (fonts/line wrapping can subtly change)
+        syncRankMetrics();
+      });
+
+      // 👇 keep the mobile scroll listener you added
+      const _se =
+        document.scrollingElement || document.documentElement || document.body;
+      if (_se && _se !== window) {
+        _se.addEventListener("scroll", updateRankScrollerPosition, {
+          passive: true,
+        });
+      }
 
       window.onload = () => {
         token = getTokenFromUrl();
         fetchAlbums();
-        updateRankScrollerPosition();
       };
 
       function getTokenFromUrl() {
