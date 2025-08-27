@@ -1,3 +1,4 @@
+// netlify/functions/spotify-auth.js
 export async function handler(event) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -19,7 +20,7 @@ export async function handler(event) {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code,
-    redirect_uri: "https://top-albums.netlify.app", // must match frontend exactly
+    redirect_uri: "https://top-albums.netlify.app", // must match Spotify dashboard
     code_verifier: codeVerifier,
   });
 
