@@ -1,8 +1,7 @@
-export async function handler(event, context) {
+export async function handler(event) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
-  // Read code and verifier from query parameters
   const code = event.queryStringParameters.code;
   const codeVerifier = event.queryStringParameters.verifier;
 
@@ -15,9 +14,9 @@ export async function handler(event, context) {
 
   const body = new URLSearchParams({
     grant_type: "authorization_code",
-    code: code,
+    code,
     redirect_uri: "https://pmgneves.github.io/Top-albums/",
-    code_verifier: codeVerifier, // <-- Important for PKCE
+    code_verifier: codeVerifier,
   });
 
   try {
@@ -32,7 +31,6 @@ export async function handler(event, context) {
     });
 
     const data = await response.json();
-
     return {
       statusCode: 200,
       body: JSON.stringify(data),
