@@ -12,12 +12,12 @@ export async function handler(event) {
     };
   }
 
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: "https://top-albums.netlify.app/",
-    code_verifier: codeVerifier,
-  });
+ const body = new URLSearchParams({
+  grant_type: "authorization_code",
+  code,
+  redirect_uri: "https://top-albums.netlify.app", // must match frontend exactly
+  code_verifier: codeVerifier,
+});
 
   try {
     const response = await fetch("https://accounts.spotify.com/api/token", {
