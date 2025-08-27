@@ -15,7 +15,7 @@ export async function handler(event) {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code,
-    redirect_uri: "https://pmgneves.github.io/Top-albums/",
+    redirect_uri: "https://top-albums.netlify.app/",
     code_verifier: codeVerifier,
   });
 
