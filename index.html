@@ -221,13 +221,15 @@
 <script>
 const CONFIG = {
   SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
+  SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce", // OK to expose
   REDIRECT_URI: "https://top-albums.netlify.app",
-  BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth" // 🔹 relative cause redirect_url already contains main root.
+  BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth"
 };
 
 let token = null;
 let albumsData = [];
 
+/* --- Fetch albums --- */
 async function fetchAlbums() {
   try {
     const response = await fetch(CONFIG.SHEET_CSV_URL);
@@ -245,6 +247,7 @@ async function fetchAlbums() {
   }
 }
 
+/* --- Render albums --- */
 function renderAlbums() {
   const container = document.getElementById("yearsContainer");
   const rankScroller = document.getElementById("rankScroller");
@@ -296,46 +299,61 @@ function renderAlbums() {
   requestAnimationFrame(syncRankMetrics);
 }
 
+/* --- Helpers --- */
 function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
 function createNoCover(){const div=document.createElement("div");div.className="no-cover";div.innerText="Album not on Spotify";return div;}
 function scrollToDecade(decadePrefix){const container=document.getElementById("yearsContainer");const target=[...container.children].find(col=>col.firstChild.innerText.startsWith(decadePrefix));if(target)target.scrollIntoView({behavior:"smooth",inline:"start"});}
-function playAlbum(uri){if(!token){alert("Please log in to Spotify first!");authenticateSpotify();return;}fetch(`https://api.spotify.com/v1/me/player/play`,{method:"PUT",body:JSON.stringify({context_uri:uri}),headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`}}).catch(err=>console.error(err));}
+function playAlbum(uri){
+  if(!token){
+    alert("Please log in to Spotify first!");
+    authenticateSpotify();
+    return;
+  }
+  fetch(`https://api.spotify.com/v1/me/player/play`,{
+    method:"PUT",
+    body: JSON.stringify({context_uri:uri}),
+    headers:{
+      "Content-Type":"application/json",
+      Authorization:`Bearer ${token}`
+    }
+  }).catch(err=>console.error(err));
+}
 
 /* --- PKCE helpers --- */
 function generateRandomString(length){let text="";const possible="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";for(let i=0;i<length;i++){text+=possible.charAt(Math.floor(Math.random()*possible.length));}return text;}
 async function generateCodeChallenge(codeVerifier){const encoder=new TextEncoder();const data=encoder.encode(codeVerifier);const digest=await window.crypto.subtle.digest("SHA-256",data);return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 
+/* --- Spotify login --- */
 function authenticateSpotify(){
   const codeVerifier=generateRandomString(128);
   localStorage.setItem("code_verifier",codeVerifier);
   generateCodeChallenge(codeVerifier).then(codeChallenge=>{
     const scope="user-modify-playback-state user-read-playback-state streaming";
     const authUrl=`https://accounts.spotify.com/authorize?response_type=code&client_id=${CONFIG.SPOTIFY_CLIENT_ID}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
-    window.location=authUrl;
+    window.location = authUrl;
   });
 }
 
-/* --- On page load: exchange code for token --- */
+/* --- On page load --- */
 window.onload=async()=>{
   const params=new URLSearchParams(window.location.search);
   const code=params.get("code");
   const storedVerifier=localStorage.getItem("code_verifier");
-  
 
   if(code && storedVerifier){
     try{
-      const res = await fetch(`/.netlify/functions/spotify-auth?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
-      const data=await res.json();
+      const res = await fetch(`${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
+      const data = await res.json();
       if(data.access_token){
-        token=data.access_token;
+        token = data.access_token;
         localStorage.removeItem("code_verifier");
-        window.history.replaceState({},document.title,CONFIG.REDIRECT_URI);
+        window.history.replaceState({}, document.title, CONFIG.REDIRECT_URI);
       } else {
-        console.error("Spotify token error:",data);
+        console.error("Spotify token error:", data);
         alert("Spotify login failed. Check console.");
       }
-    }catch(err){
-      console.error("Error fetching Spotify token:",err);
+    } catch(err){
+      console.error("Error fetching Spotify token:", err);
       alert("Spotify login failed. Check console.");
     }
   }
@@ -387,7 +405,3 @@ window.addEventListener("resize",syncRankMetrics);
 </script>
 </body>
 </html>
-
-
-
-
