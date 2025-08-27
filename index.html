@@ -223,7 +223,7 @@ const CONFIG = {
   SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
   SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce",
   REDIRECT_URI: "https://top-albums.netlify.app",
-  BACKEND_FUNCTION_URL: "https://top-albums.netlify.app/.netlify/functions/spotify-auth" // 🔹 FULL NETLIFY URL here
+  BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth" // 🔹 relative cause redirect_url already contains main root.
 };
 
 let token = null;
@@ -321,10 +321,12 @@ window.onload=async()=>{
   const params=new URLSearchParams(window.location.search);
   const code=params.get("code");
   const storedVerifier=localStorage.getItem("code_verifier");
+  
 
   if(code && storedVerifier){
     try{
       const res=await fetch(`${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
+      const res = await fetch(`/.netlify/functions/spotify-auth?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
       const data=await res.json();
       if(data.access_token){
         token=data.access_token;
@@ -387,4 +389,5 @@ window.addEventListener("resize",syncRankMetrics);
 </script>
 </body>
 </html>
+
 
