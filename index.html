@@ -324,7 +324,6 @@ window.onload=async()=>{
 
   if(code && storedVerifier){
     try{
-      const res=await fetch(`${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
       const res = await fetch(`/.netlify/functions/spotify-auth?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
       const data=await res.json();
       if(data.access_token){
@@ -388,6 +387,7 @@ window.addEventListener("resize",syncRankMetrics);
 </script>
 </body>
 </html>
+
 
 
 
