@@ -2,6 +2,10 @@ export async function handler(event) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
+  // Debug logs — will show up in Netlify function logs
+  console.log("Client ID:", clientId);
+  console.log("Client Secret:", clientSecret ? "OK" : "MISSING");
+
   const code = event.queryStringParameters.code;
   const codeVerifier = event.queryStringParameters.verifier;
 
