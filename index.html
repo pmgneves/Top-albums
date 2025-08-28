@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
   <title>My Best Albums</title>
   <style>
     body {
@@ -50,14 +53,14 @@
     }
     .main-container {
       display: flex;
-      margin-top: 50px;
+      margin-top: 0px;
     }
     .rank-column {
       position: fixed;
       left: 0;
       top: 50px;
       width: 30px;
-      bottom: 64px;
+      bottom: 64px; /* leave space for player bar */
       background: #111;
       z-index: 50;
       display: flex;
@@ -86,7 +89,7 @@
     .years-container {
       display: flex;
       align-items: flex-start;
-      padding: 0px 10px 80px 60px;
+      padding: 0px 10px 80px 60px; /* leave bottom space for player bar */
       gap: 20px;
       position: relative;
     }
@@ -171,8 +174,49 @@
       background: rgba(100, 149, 237, 0.15);
       box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
     }
+    .years-container::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--rows-offset,0px);
+      height: var(--stripe-cover,0px);
+      z-index: 1;
+      pointer-events: none;
+      background-image: linear-gradient(
+        to bottom,
+        rgba(212, 175, 55, 0.2) 0%,
+        rgba(212, 175, 55, 0.2) 5%,
+        rgba(192, 192, 192, 0.2) 5%,
+        rgba(192, 192, 192, 0.2) 10%,
+        rgba(205, 127, 50, 0.2) 10%,
+        rgba(205, 127, 50, 0.2) 15%,
+        rgba(140, 184, 245, 0.15) 15%,
+        rgba(140, 184, 245, 0.15) 50%,
+        rgba(100, 149, 237, 0.15) 50%,
+        rgba(100, 149, 237, 0.15) 100%
+      );
+      background-size: 100% var(--stripe-block,4000px);
+      background-repeat: no-repeat;
+      filter: blur(6px) saturate(1.05);
+      opacity: 0.95;
+      -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0px,
+        rgba(0, 0, 0, 1) 60px,
+        rgba(0, 0, 0, 1) calc(100% - 60px),
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to right,
+        transparent 0px,
+        rgba(0, 0, 0, 1) 60px,
+        rgba(0, 0, 0, 1) calc(100% - 60px),
+        transparent 100%
+      );
+    }
 
-    /* --- Modal --- */
+    /* --- Modal (album popup) --- */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -245,7 +289,7 @@
       right: 0;
       bottom: 0;
       height: 64px;
-      background: #1a1a1a;
+      background: #0b0b0b;
       border-top: 1px solid #222;
       display: flex;
       align-items: center;
@@ -359,17 +403,18 @@
 /* ===================== CONFIG ===================== */
 const CONFIG = {
   SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
-  SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce",
-  REDIRECT_URI: "https://top-albums.netlify.app",
+  SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce", // Public is OK
+  REDIRECT_URI: "https://top-albums.netlify.app",         // Must match Spotify app settings
   BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth"
 };
 
 let token = null;
+let refreshToken = null; // available from backend response if you later add refresh flow
+let albumsData = [];
 let player = null;
 let deviceId = null;
 
 /* ===================== DATA LOAD ===================== */
-let albumsData = [];
 async function fetchAlbums() {
   try {
     const response = await fetch(CONFIG.SHEET_CSV_URL);
@@ -382,59 +427,85 @@ async function fetchAlbums() {
         renderAlbums();
       },
     });
-  } catch (err) { console.error("Error fetching CSV:", err); }
+  } catch (err) {
+    console.error("Error fetching CSV:", err);
+  }
 }
 
 function renderAlbums() {
   const container = document.getElementById("yearsContainer");
   const rankScroller = document.getElementById("rankScroller");
-  container.innerHTML = ""; rankScroller.innerHTML = "";
+  container.innerHTML = "";
+  rankScroller.innerHTML = "";
 
   const years = [...new Set(albumsData.map(a => a.Year))].sort();
   let globalRank = 1;
 
   years.forEach(year => {
-    const yearCol = document.createElement("div"); yearCol.className = "year-column";
-    const yearDiv = document.createElement("div"); yearDiv.className="year-title"; yearDiv.innerText = year;
-    yearCol.appendChild(yearDiv);
-    const albumsWrapper = document.createElement("div"); albumsWrapper.className = "albums-wrapper";
+    const yearCol = document.createElement("div");
+    yearCol.className = "year-column";
 
-    const albumsOfYear = albumsData.filter(a=>a.Year===year).sort((a,b)=>Number(a.Rank)-Number(b.Rank));
+    const yearDiv = document.createElement("div");
+    yearDiv.className = "year-title";
+    yearDiv.innerText = year;
+    yearCol.appendChild(yearDiv);
+
+    const albumsWrapper = document.createElement("div");
+    albumsWrapper.className = "albums-wrapper";
+
+    const albumsOfYear = albumsData
+      .filter(a => a.Year === year)
+      .sort((a,b)=>Number(a.Rank)-Number(b.Rank));
+
     albumsOfYear.forEach(a=>{
       const [artist, albumTitle] = (a["Album-Artist"]?.split(" - ") || ["Unknown","Unknown"]).map(s=>s.trim());
-      const div=document.createElement("div"); div.className="album";
-      const infoDiv=document.createElement("div"); infoDiv.className="album-info";
+      const div = document.createElement("div");
+      div.className = "album";
+
+      const infoDiv = document.createElement("div");
+      infoDiv.className = "album-info";
       infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
+
       const cover = a.CoverURL ? createCoverImg(a.CoverURL) : createNoCover();
-      div.appendChild(cover); div.appendChild(infoDiv);
+      div.appendChild(cover);
+      div.appendChild(infoDiv);
+
       div.onclick = ()=> openAlbumPopup(a, artist, albumTitle);
+
       albumsWrapper.appendChild(div);
 
-      const rankDiv=document.createElement("div"); rankDiv.className="rank-number"; rankDiv.innerText=globalRank++;
+      const rankDiv = document.createElement("div");
+      rankDiv.className = "rank-number";
+      rankDiv.innerText = globalRank++;
       rankScroller.appendChild(rankDiv);
     });
 
-    yearCol.appendChild(albumsWrapper); container.appendChild(yearCol);
+    yearCol.appendChild(albumsWrapper);
+    container.appendChild(yearCol);
   });
 
   requestAnimationFrame(syncRankMetrics);
 }
 
-function createCoverImg(url){ const img=document.createElement("img"); img.src=url; return img; }
-function createNoCover(){ const div=document.createElement("div"); div.className="no-cover"; div.innerText="Album not on Spotify"; return div; }
-function scrollToDecade(decadePrefix){ const container=document.getElementById("yearsContainer"); const target=[...container.children].find(col=>col.firstChild.innerText.startsWith(decadePrefix)); if(target)target.scrollIntoView({behavior:"smooth",inline:"start"}); }
+function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
+function createNoCover(){const div=document.createElement("div");div.className="no-cover";div.innerText="Album not on Spotify";return div;}
+function scrollToDecade(decadePrefix){
+  const container=document.getElementById("yearsContainer");
+  const target=[...container.children].find(col=>col.firstChild.innerText.startsWith(decadePrefix));
+  if(target)target.scrollIntoView({behavior:"smooth",inline:"start"});
+}
 
-/* ===================== AUTH ===================== */
+/* ===================== AUTH (PKCE) ===================== */
 const loginBtn = document.getElementById("loginBtn");
 loginBtn.addEventListener("click", authenticateSpotify);
 
 function generateRandomString(length){
-  let text=""; const possible="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let text="";const possible="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for(let i=0;i<length;i++){text+=possible.charAt(Math.floor(Math.random()*possible.length));}
   return text;
 }
 async function generateCodeChallenge(codeVerifier){
-  const encoder=new TextEncoder(); const data=encoder.encode(codeVerifier);
+  const encoder=new TextEncoder();const data=encoder.encode(codeVerifier);
   const digest=await window.crypto.subtle.digest("SHA-256",data);
   return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 }
@@ -449,146 +520,217 @@ function authenticateSpotify(){
   });
 }
 
-/* Handle login redirect */
+/* Exchange code for token on load (after redirect) */
 async function handleAuthRedirect(){
   const params=new URLSearchParams(window.location.search);
   const code=params.get("code");
   const storedVerifier=localStorage.getItem("code_verifier");
 
+  // Already logged?
   const existing = localStorage.getItem("spotify_access_token");
-  if (existing) { token = existing; updateLoginButton(); initPlayerIfPossible(); }
+  if (existing) {
+    token = existing;
+    initPlayerIfPossible();
+  }
 
   if(code && storedVerifier){
     try{
       const res = await fetch(`${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
-      const data = await res.json();
+      const data=await res.json();
       if(data.access_token){
-        token = data.access_token;
+        token=data.access_token;
         localStorage.setItem("spotify_access_token", token);
         localStorage.removeItem("code_verifier");
+        // Clean URL
         window.history.replaceState({},document.title,CONFIG.REDIRECT_URI);
-        updateLoginButton();
         initPlayerIfPossible();
-      } else { console.error("Spotify token error:",data); }
-    }catch(err){ console.error("Error fetching Spotify token:",err); }
+      } else {
+        console.error("Spotify token error:",data);
+        alert("Spotify login failed. Check console.");
+      }
+    }catch(err){
+      console.error("Error fetching Spotify token:",err);
+      alert("Spotify login failed. Check console.");
+    }
   }
 }
 
-function updateLoginButton(){
-  if(token){
-    loginBtn.textContent = "Logged in";
-    loginBtn.onclick = ()=>{ localStorage.removeItem("spotify_access_token"); token=null; location.reload(); };
-  } else {
-    loginBtn.textContent = "Log in with Spotify";
-    loginBtn.onclick = authenticateSpotify;
-  }
-}
-
-/* ===================== Spotify Web Playback SDK ===================== */
-window.onSpotifyWebPlaybackSDKReady = () => { initPlayerIfPossible(); };
+/* ===================== SPOTIFY WEB PLAYBACK SDK ===================== */
+window.onSpotifyWebPlaybackSDKReady = () => {
+  initPlayerIfPossible();
+};
 
 function initPlayerIfPossible(){
-  if(!window.Spotify || !token || player) return;
+  if (!window.Spotify) return;          // SDK not ready yet
+  if (!token) return;                    // no token yet
+
+  if (player) return;                    // already initialized
 
   player = new Spotify.Player({
     name: 'Top Albums Web Player',
-    getOAuthToken: cb => cb(token),
+    getOAuthToken: cb => { cb(token); },
     volume: 0.7
   });
 
-  player.addListener('ready', ({ device_id })=>{ deviceId=device_id; transferPlaybackToDevice(); });
-  player.addListener('player_state_changed', state=>{ if(!state)return; updateBarFromState(state); document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️"; });
+  player.addListener('initialization_error', ({ message }) => console.error('init_error', message));
+  player.addListener('authentication_error', ({ message }) => console.error('auth_error', message));
+  player.addListener('account_error', ({ message }) => console.error('account_error', message));
+  player.addListener('playback_error', ({ message }) => console.error('playback_error', message));
+
+  player.addListener('ready', ({ device_id }) => {
+    console.log('Ready with Device ID', device_id);
+    deviceId = device_id;
+    localStorage.setItem("spotify_device_id", deviceId);
+    transferPlaybackToDevice();
+  });
+
+  player.addListener('player_state_changed', state => {
+    if (!state) return;
+    updateBarFromState(state);
+    // Update play/pause button icon
+    document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️";
+  });
+
   player.connect();
 }
 
 async function transferPlaybackToDevice(){
-  if(!deviceId || !token) return;
-  try{ await fetch("https://api.spotify.com/v1/me/player",{method:"PUT", headers:{ "Authorization":`Bearer ${token}`, "Content-Type":"application/json"}, body:JSON.stringify({ device_ids:[deviceId], play:false })}); } catch(e){ console.error(e);}
+  // Ensure future play calls target our web player
+  try {
+    await fetch("https://api.spotify.com/v1/me/player", {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
+      body: JSON.stringify({ device_ids: [deviceId], play: false })
+    });
+  } catch (e) { console.error('transferPlaybackToDevice', e); }
 }
 
-/* ===================== Playback controls ===================== */
-document.getElementById("playPauseBtn").addEventListener("click", ()=>{ if(player) player.togglePlay(); });
-document.getElementById("nextBtn").addEventListener("click", ()=>{ if(player) player.nextTrack(); });
-document.getElementById("prevBtn").addEventListener("click", ()=>{ if(player) player.previousTrack(); });
+/* ===================== PLAYBACK BAR CONTROLS ===================== */
+const playPauseBtn = document.getElementById("playPauseBtn");
+const nextBtn = document.getElementById("nextBtn");
+const prevBtn = document.getElementById("prevBtn");
+
+playPauseBtn.addEventListener("click", () => { if (player) player.togglePlay(); });
+nextBtn.addEventListener("click", () => { if (player) player.nextTrack(); });
+prevBtn.addEventListener("click", () => { if (player) player.previousTrack(); });
 
 function updateBarFromState(state){
   const current = state.track_window.current_track;
-  if(!current) return;
+  if (!current) return;
   const cover = current.album.images?.[0]?.url || "";
   document.getElementById("barCover").src = cover;
   document.getElementById("barTrack").textContent = current.name || "—";
-  document.getElementById("barArtist").textContent = current.artists?.[0]?.name || "—";
+  document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
 }
 
-function uriToId(uri){ if(!uri) return null; const parts = uri.split(":"); return parts[2] || null; }
-
-async function startAlbumPlayback(albumUri){
-  if(!token || !deviceId) return;
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, { method:"PUT", headers:{ "Authorization":`Bearer ${token}`, "Content-Type":"application/json"}, body:JSON.stringify({ context_uri: albumUri })}).catch(console.error);
+/* ===================== PLAY HELPERS ===================== */
+function uriToId(uri) {
+  // "spotify:album:xxxx" or "spotify:track:xxxx" -> "xxxx"
+  if (!uri) return null;
+  const parts = uri.split(":");
+  return parts[2] || null;
 }
 
-async function startTrackPlayback(albumUri, trackUri){
-  if(!token || !deviceId) return;
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, { method:"PUT", headers:{ "Authorization":`Bearer ${token}`, "Content-Type":"application/json"}, body:JSON.stringify({ uris:[trackUri], context_uri: albumUri })}).catch(console.error);
+async function startAlbumPlayback(albumUri) {
+  if (!token) { alert("Please log in to Spotify first."); return; }
+  if (!deviceId) { alert("Player is starting, try again in a second."); return; }
+
+  // play album context on our device
+  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
+    method: "PUT",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
+    body: JSON.stringify({ context_uri: albumUri })
+  }).catch(e => console.error(e));
 }
 
-/* ===================== Modal Album Popup ===================== */
-const modalBackdrop=document.getElementById("albumModalBackdrop");
-const closeModalBtn=document.getElementById("closeModalBtn");
-const modalCover=document.getElementById("modalCover");
-const modalAlbumName=document.getElementById("modalAlbumName");
-const modalArtistName=document.getElementById("modalArtistName");
-const tracksList=document.getElementById("tracksList");
-const modalPlayBtn=document.getElementById("modalPlayBtn");
-let currentAlbumUri=null;
+async function startTrackPlayback(albumUri, trackUri) {
+  if (!token || !deviceId) return;
+  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
+    method: "PUT",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
+    body: JSON.stringify({ uris: [trackUri], context_uri: albumUri })
+  }).catch(e => console.error(e));
+}
 
-closeModalBtn.addEventListener("click", ()=>modalBackdrop.style.display="none");
-modalBackdrop.addEventListener("click", e=>{ if(e.target===modalBackdrop) modalBackdrop.style.display="none"; });
-modalPlayBtn.addEventListener("click", ()=>{ if(currentAlbumUri) startAlbumPlayback(currentAlbumUri); });
+/* ===================== MODAL: Album Popup w/ Tracks ===================== */
+const modalBackdrop = document.getElementById("albumModalBackdrop");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const modalCover = document.getElementById("modalCover");
+const modalAlbumName = document.getElementById("modalAlbumName");
+const modalArtistName = document.getElementById("modalArtistName");
+const tracksList = document.getElementById("tracksList");
+const modalPlayBtn = document.getElementById("modalPlayBtn");
+
+let currentAlbumUri = null;
+
+function showModal(){ modalBackdrop.style.display = "flex"; }
+function hideModal(){ modalBackdrop.style.display = "none"; }
+
+closeModalBtn.addEventListener("click", hideModal);
+modalBackdrop.addEventListener("click", (e) => { if (e.target === modalBackdrop) hideModal(); });
+modalPlayBtn.addEventListener("click", () => { if (currentAlbumUri) startAlbumPlayback(currentAlbumUri); });
 
 async function openAlbumPopup(albumRow, artist, albumTitle){
-  if(!token){ authenticateSpotify(); return; }
-  currentAlbumUri = albumRow.SpotifyURI || null;
-  if(!currentAlbumUri){ alert("No Spotify album URI"); return; }
+  // Require auth to populate tracks
+  if (!token) { authenticateSpotify(); return; }
 
+  currentAlbumUri = albumRow.SpotifyURI || null;
+  if (!currentAlbumUri) { alert("No Spotify album URI for this item."); return; }
+
+  // Header portion
   modalAlbumName.textContent = albumTitle || "—";
   modalArtistName.textContent = artist || "—";
-  if(albumRow.CoverURL) modalCover.src = albumRow.CoverURL; else modalCover.removeAttribute("src");
+  if (albumRow.CoverURL) modalCover.src = albumRow.CoverURL; else modalCover.removeAttribute("src");
 
+  // Fetch tracks from Spotify
   tracksList.innerHTML = "Loading tracks…";
   const albumId = uriToId(currentAlbumUri);
-  try{
-    const resp = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`,{ headers:{ "Authorization":`Bearer ${token}`}});
+  try {
+    const resp = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
     const data = await resp.json();
     const items = data.items || [];
-    if(!items.length) tracksList.innerHTML="<div style='color:#bbb'>No tracks found.</div>";
-    else{
-      tracksList.innerHTML="";
-      items.forEach((t, idx)=>{
-        const div=document.createElement("div"); div.className="track";
-        const mins=Math.floor((t.duration_ms||0)/60000);
-        const secs=Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
-        div.innerHTML=`<div>#${t.track_number||idx+1} — ${t.name}</div><div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>`;
-        div.onclick=()=>startTrackPlayback(currentAlbumUri, t.uri);
+
+    if (!items.length) {
+      tracksList.innerHTML = "<div style='color:#bbb'>No tracks found.</div>";
+    } else {
+      tracksList.innerHTML = "";
+      items.forEach((t, idx) => {
+        const div = document.createElement("div");
+        div.className = "track";
+        const mins = Math.floor((t.duration_ms||0)/60000);
+        const secs = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
+        div.innerHTML = `
+          <div>#${(t.track_number||idx+1)} — ${t.name}</div>
+          <div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>
+        `;
+        div.onclick = () => startTrackPlayback(currentAlbumUri, t.uri);
         tracksList.appendChild(div);
       });
     }
-  }catch(e){ console.error(e); tracksList.innerHTML="<div style='color:#f77'>Failed to load tracks</div>"; }
-  modalBackdrop.style.display="flex";
+  } catch (e) {
+    console.error(e);
+    tracksList.innerHTML = "<div style='color:#f77'>Failed to load tracks</div>";
+  }
+
+  showModal();
 }
 
-/* ===================== Layout sync ===================== */
+/* ===================== LAYOUT SYNC ===================== */
 function syncRankMetrics(){
   const firstAlbum=document.querySelector(".albums-wrapper .album");
   const rankScroller=document.getElementById("rankScroller");
   const firstYearTitle=document.querySelector(".year-title");
   const yearsContainer=document.getElementById("yearsContainer");
-  if(!firstAlbum||!rankScroller||!firstYearTitle||!yearsContainer) return;
+  if(!firstAlbum||!rankScroller||!firstYearTitle||!yearsContainer)return;
 
   const albumContentH=firstAlbum.getBoundingClientRect().height;
   const albumMarginTop=parseFloat(getComputedStyle(firstAlbum).marginTop||"0");
   const totalRowH=albumContentH+albumMarginTop;
+
   rankScroller.style.setProperty("--row-h",totalRowH+"px");
+  rankScroller.style.gridAutoRows=totalRowH+"px";
   document.documentElement.style.setProperty("--row-h",totalRowH+"px");
 
   const yearTitleH=firstYearTitle.getBoundingClientRect().height;
@@ -600,12 +742,27 @@ function syncRankMetrics(){
   const firstAlbumRect=firstAlbum.getBoundingClientRect();
   const rowsOffsetForCSS=firstAlbumRect.top-yearsRect.top;
   document.documentElement.style.setProperty("--rows-offset",Math.max(0,rowsOffsetForCSS)+"px");
+
+  const totalAlbums=document.querySelectorAll("#rankScroller .rank-number").length;
+  const rowsToCover=Math.min(totalAlbums,20);
+  const stripeCoverHeight=rowsToCover*totalRowH;
+
+  document.documentElement.style.setProperty("--stripe-block",totalRowH*20+"px");
+  document.documentElement.style.setProperty("--stripe-cover",stripeCoverHeight+"px");
 }
-window.addEventListener("scroll",()=>{ const rankScroller=document.getElementById("rankScroller"); const offset=parseFloat(rankScroller.dataset.offsetTop||0); rankScroller.style.transform=`translateY(${offset-window.scrollY}px)`; },{passive:true});
+
+window.addEventListener("scroll",()=>{
+  const rankScroller=document.getElementById("rankScroller");
+  const offset=parseFloat(rankScroller.dataset.offsetTop||0);
+  rankScroller.style.transform=`translateY(${offset-window.scrollY}px)`;
+},{passive:true});
 window.addEventListener("resize",syncRankMetrics);
 
-/* ===================== Boot ===================== */
-window.onload = async () => { await handleAuthRedirect(); fetchAlbums(); };
+/* ===================== BOOT ===================== */
+window.onload = async () => {
+  await handleAuthRedirect();
+  fetchAlbums();
+};
 </script>
 </body>
 </html>
