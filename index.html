@@ -625,10 +625,13 @@ function updateBarFromState(state){
 
 /* ===================== PLAY HELPERS ===================== */
 function uriToId(uri) {
-  // "spotify:album:xxxx" or "spotify:track:xxxx" -> "xxxx"
   if (!uri) return null;
-  const parts = uri.split(":");
-  return parts[2] || null;
+  // spotify URI
+  if (uri.startsWith("spotify:album:")) return uri.split(":")[2];
+  // spotify URL
+  const match = uri.match(/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
+  if (match) return match[1];
+  return null;
 }
 
 async function startAlbumPlayback(albumUri) {
@@ -766,3 +769,4 @@ window.onload = async () => {
 </script>
 </body>
 </html>
+
