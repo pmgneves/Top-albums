@@ -646,8 +646,11 @@ async function startAlbumPlayback(albumUri) {
   }).catch(e => console.error(e));
 }
 
-async function startTrackPlayback(trackUri) {
+async function startTrackPlayback(albumUri, trackUri) {
   if (!token || !deviceId) return;
+
+  // Find track position (optional, to start from clicked track)
+  const offset = trackUri ? { uri: trackUri } : undefined;
 
   await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
     method: "PUT",
@@ -655,9 +658,13 @@ async function startTrackPlayback(trackUri) {
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ uris: [trackUri] }) // play only this track
+    body: JSON.stringify({
+      context_uri: albumUri, // album context
+      offset: offset,        // start from clicked track
+    })
   }).catch(e => console.error(e));
 }
+
 
 /* ===================== MODAL: Album Popup w/ Tracks ===================== */
 const modalBackdrop = document.getElementById("albumModalBackdrop");
@@ -714,9 +721,9 @@ async function openAlbumPopup(albumRow, artist, albumTitle){
   `;
          // ✅ Fixed click: play track directly
  // ✅ Fixed click: play track directly
-  div.onclick = () => {
+div.onclick = () => {
     console.log("Playing track:", t.name, t.uri);  // optional log
-    startTrackPlayback(t.uri);                     // only the track URI
+    startTrackPlayback(currentAlbumUri, t.uri);                     // only the track URI
   };
 
   tracksList.appendChild(div);
@@ -779,5 +786,6 @@ window.onload = async () => {
 </script>
 </body>
 </html>
+
 
 
