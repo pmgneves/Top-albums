@@ -671,17 +671,16 @@ function initPlayerIfPossible(){
     progressBar.value = progressPercent;
   });
 }
+/* --- Elements for player-bar --- */
 const barInfo = document.getElementById("barInfo");
 const progressBar = document.getElementById("progressBar");
 const currentTimeEl = document.getElementById("currentTime");
 const totalTimeEl = document.getElementById("totalTime");
 
-barInfo.addEventListener("click", () => {
-  if (currentAlbumUri) showModal();
-});
+barInfo.addEventListener("click", () => { if (currentAlbumUri) showModal(); });
 
-// Update progress and time
-function updateBarFromState(state){
+// --- Move the function here, after declarations ---
+const updateBarFromState = (state) => {
   const current = state.track_window.current_track;
   if (!current) return;
 
@@ -690,19 +689,18 @@ function updateBarFromState(state){
   document.getElementById("barTrack").textContent = current.name || "—";
   document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
 
-  currentAlbumUri = current.album.uri; // set current album for popup
+  currentAlbumUri = current.album.uri;
 
   const duration = current.duration_ms;
   totalTimeEl.textContent = formatTime(duration);
+  const pos = state.position;
+  currentTimeEl.textContent = formatTime(pos);
+  const progressPercent = Math.min(100, (pos / duration) * 100);
+  progressBar.value = progressPercent;
 
-  player.getCurrentState().then(state => {
-    if (!state) return;
-    const pos = state.position;
-    currentTimeEl.textContent = formatTime(pos);
-    const progressPercent = Math.min(100, (pos / duration) * 100);
-    progressBar.value = progressPercent;
-  });
-}
+  document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️";
+};
+
 
 // Format milliseconds to mm:ss
 function formatTime(ms){
@@ -941,6 +939,7 @@ window.onload = async () => {
 </script>
 </body>
 </html>
+
 
 
 
