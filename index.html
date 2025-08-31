@@ -476,6 +476,7 @@ let albumsData = [];
 let player = null;
 let deviceId = null;
 let currentAlbumUri = null;
+let progressInterval = null;
 
 // ====== DOM ELEMENTS ======
 const barInfo = document.getElementById("barInfo");
@@ -637,8 +638,17 @@ function initPlayerIfPossible(){
   });
 
   // Use single, top-level updateBarFromState
-  player.addListener('player_state_changed', state => { if (!state) return; updateBarFromState(state); document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️"; });
+player.addListener('player_state_changed', state => { 
+  if (!state) return; 
+  updateBarFromState(state); 
 
+  // Start or stop the automatic progress updater
+  if (state.paused) stopProgressUpdater();
+  else startProgressUpdater();
+
+  document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️"; 
+});
+  
   player.connect();
 }
 
@@ -678,6 +688,25 @@ function formatTime(ms){
   const mins = Math.floor(totalSec/60);
   const secs = totalSec % 60;
   return `${mins}:${secs.toString().padStart(2,'0')}`;
+}
+//Update the progress bar
+function startProgressUpdater() {
+  if (progressInterval) clearInterval(progressInterval);
+  progressInterval = setInterval(async () => {
+    if (!player) return;
+    const state = await player.getCurrentState();
+    if (!state || !state.track_window.current_track) return;
+
+    const pos = state.position;
+    const duration = state.track_window.current_track.duration_ms;
+    currentTimeEl.textContent = formatTime(pos);
+    totalTimeEl.textContent = formatTime(duration);
+    progressBar.value = Math.min(100, (pos / duration) * 100);
+  }, 500); // updates every 0.5 seconds
+}
+
+function stopProgressUpdater() {
+  if (progressInterval) clearInterval(progressInterval);
 }
 
 // ====== MODAL ======
@@ -794,6 +823,7 @@ window.onload = async () => {
 </script>
 </body>
 </html>
+
 
 
 
