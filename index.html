@@ -284,19 +284,23 @@
 
     /* --- Bottom Player Bar --- */
     .player-bar {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 64px;
-      background: #0b0b0b;
-      border-top: 1px solid #222;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      z-index: 150;
-    }
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 80%;
+  max-width: 960px;
+  height: 72px;
+  background: #181818;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 150;
+  border-top: 1px solid #333;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
+}
     .controls { display: flex; align-items: center; gap: 12px; }
     .ctrl-btn {
       background: #222;
@@ -309,38 +313,90 @@
       font-size: 16px;
     }
     .track-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-      flex: 1;
-      padding: 0 8px;
-    }
-    .track-info img {
-      width: 44px;
-      height: 44px;
-      border-radius: 6px;
-      object-fit: cover;
-    }
-    .track-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-    .track-name {
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .track-artist {
-      font-size: 12px;
-      color: #bbb;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.track-info img {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+   .track-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.track-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+.track-artist { font-size: 12px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+}
+
+.ctrl-btn {
+  background: #282828;
+  color: #fff;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.ctrl-btn:hover {
+  background: #3a3a3a;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 300px;
+}
+
+#progressBar {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: #535353;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+#progressBar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 2px rgba(0,0,0,0.8);
+}
+
+#progressBar::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 2px rgba(0,0,0,0.8);
+}
+
+#currentTime, #totalTime {
+  font-size: 10px;
+  color: #ccc;
+  width: 28px;
+  text-align: center;
+}
   </style>
 </head>
 <body>
@@ -383,17 +439,23 @@
 
 <!-- Bottom Player Bar -->
 <div class="player-bar">
-  <div class="track-info">
-    <img id="barCover" src="" alt="" />
+  <div class="track-info" id="barInfo">
+    <img id="barCover" src="" alt="Album Cover" />
     <div class="track-text">
       <div id="barTrack" class="track-name">—</div>
       <div id="barArtist" class="track-artist">—</div>
     </div>
   </div>
+
   <div class="controls">
     <button id="prevBtn" class="ctrl-btn" title="Previous">⏮️</button>
     <button id="playPauseBtn" class="ctrl-btn" title="Play/Pause">▶️</button>
     <button id="nextBtn" class="ctrl-btn" title="Next">⏭️</button>
+    <div class="progress-container">
+      <span id="currentTime">0:00</span>
+      <input type="range" id="progressBar" min="0" max="100" value="0">
+      <span id="totalTime">0:00</span>
+    </div>
   </div>
 </div>
 
@@ -587,6 +649,99 @@ function initPlayerIfPossible(){
   player.addListener('player_state_changed', state => {
     if (!state) return;
     updateBarFromState(state);
+    function updateBarFromState(state){
+  const current = state.track_window.current_track;
+  if (!current) return;
+
+  const cover = current.album.images?.[0]?.url || "";
+  document.getElementById("barCover").src = cover;
+  document.getElementById("barTrack").textContent = current.name || "—";
+  document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
+
+  currentAlbumUri = current.album.uri; // set current album for popup
+
+  const duration = current.duration_ms;
+  totalTimeEl.textContent = formatTime(duration);
+
+  player.getCurrentState().then(state => {
+    if (!state) return;
+    const pos = state.position;
+    currentTimeEl.textContent = formatTime(pos);
+    const progressPercent = Math.min(100, (pos / duration) * 100);
+    progressBar.value = progressPercent;
+  });
+}
+const barInfo = document.getElementById("barInfo");
+const progressBar = document.getElementById("progressBar");
+const currentTimeEl = document.getElementById("currentTime");
+const totalTimeEl = document.getElementById("totalTime");
+
+barInfo.addEventListener("click", () => {
+  if (currentAlbumUri) showModal();
+});
+
+// Update progress and time
+function updateBarFromState(state){
+  const current = state.track_window.current_track;
+  if (!current) return;
+
+  const cover = current.album.images?.[0]?.url || "";
+  document.getElementById("barCover").src = cover;
+  document.getElementById("barTrack").textContent = current.name || "—";
+  document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
+
+  currentAlbumUri = current.album.uri; // set current album for popup
+
+  const duration = current.duration_ms;
+  totalTimeEl.textContent = formatTime(duration);
+
+  player.getCurrentState().then(state => {
+    if (!state) return;
+    const pos = state.position;
+    currentTimeEl.textContent = formatTime(pos);
+    const progressPercent = Math.min(100, (pos / duration) * 100);
+    progressBar.value = progressPercent;
+  });
+}
+
+// Format milliseconds to mm:ss
+function formatTime(ms){
+  const totalSec = Math.floor(ms/1000);
+  const mins = Math.floor(totalSec/60);
+  const secs = totalSec % 60;
+  return `${mins}:${secs.toString().padStart(2,'0')}`;
+}
+
+// Allow seeking
+progressBar.addEventListener("input", async (e) => {
+  if (!player) return;
+  const percent = e.target.value;
+  const state = await player.getCurrentState();
+  if (!state) return;
+  const duration = state.track_window.current_track.duration_ms;
+  const newPos = Math.floor(duration * (percent / 100));
+  player.seek(newPos);
+});
+
+// Format milliseconds to mm:ss
+function formatTime(ms){
+  const totalSec = Math.floor(ms/1000);
+  const mins = Math.floor(totalSec/60);
+  const secs = totalSec % 60;
+  return `${mins}:${secs.toString().padStart(2,'0')}`;
+}
+
+// Allow seeking
+progressBar.addEventListener("input", async (e) => {
+  if (!player) return;
+  const percent = e.target.value;
+  const state = await player.getCurrentState();
+  if (!state) return;
+  const duration = state.track_window.current_track.duration_ms;
+  const newPos = Math.floor(duration * (percent / 100));
+  player.seek(newPos);
+});
+    
     // Update play/pause button icon
     document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️";
   });
@@ -648,12 +803,23 @@ async function startAlbumPlayback(albumUri) {
 
 async function startTrackPlayback(albumUri, trackUri) {
   if (!token || !deviceId) return;
+
+  // Find track position (optional, to start from clicked track)
+  const offset = trackUri ? { uri: trackUri } : undefined;
+
   await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
     method: "PUT",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
-    body: JSON.stringify({ uris: [trackUri], context_uri: albumUri })
+    headers: { 
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      context_uri: albumUri, // album context
+      offset: offset,        // start from clicked track
+    })
   }).catch(e => console.error(e));
 }
+
 
 /* ===================== MODAL: Album Popup w/ Tracks ===================== */
 const modalBackdrop = document.getElementById("albumModalBackdrop");
@@ -699,18 +865,24 @@ async function openAlbumPopup(albumRow, artist, albumTitle){
       tracksList.innerHTML = "<div style='color:#bbb'>No tracks found.</div>";
     } else {
       tracksList.innerHTML = "";
-      items.forEach((t, idx) => {
-        const div = document.createElement("div");
-        div.className = "track";
-        const mins = Math.floor((t.duration_ms||0)/60000);
-        const secs = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
-        div.innerHTML = `
-          <div>#${(t.track_number||idx+1)} — ${t.name}</div>
-          <div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>
-        `;
-        div.onclick = () => startTrackPlayback(currentAlbumUri, t.uri);
-        tracksList.appendChild(div);
-      });
+    items.forEach((t, idx) => {
+  const div = document.createElement("div");
+  div.className = "track";
+  const mins = Math.floor((t.duration_ms||0)/60000);
+  const secs = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
+  div.innerHTML = `
+    <div>#${(t.track_number||idx+1)} — ${t.name}</div>
+    <div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>
+  `;
+         // ✅ Fixed click: play track directly
+ // ✅ Fixed click: play track directly
+div.onclick = () => {
+    console.log("Playing track:", t.name, t.uri);  // optional log
+    startTrackPlayback(currentAlbumUri, t.uri);                     // only the track URI
+  };
+
+  tracksList.appendChild(div);
+});
     }
   } catch (e) {
     console.error(e);
