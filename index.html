@@ -773,6 +773,14 @@ player.addListener('player_state_changed', state => {
 
 // ====== PROGRESS BAR & TRACK INFO ======
 function updateBarFromState(state){
+  if (!state) return;
+
+  // Show the player bar only if hidden
+  const playerBar = document.querySelector(".player-bar");
+  if (playerBar && playerBar.style.display === "none") {
+    playerBar.style.display = "flex";
+  }
+
   const current = state.track_window.current_track;
   if (!current) return;
 
@@ -790,6 +798,7 @@ function updateBarFromState(state){
   currentTimeEl.textContent = formatTime(pos);
   progressBar.value = Math.min(100, (pos / duration) * 100);
 }
+
 // Show player bar when playback starts
 const playerBar = document.querySelector(".player-bar");
 if (playerBar && playerBar.style.display === "none") {
@@ -941,23 +950,30 @@ async function transferPlaybackToDevice(){
 
 // ====== BOOT ======
 window.onload = async () => {
-  await handleAuthRedirect(); // handle redirect after Spotify login
+  // 1️⃣ Render albums immediately
+  await fetchAlbums();
 
-  // Check if user is already logged in
-  const storedToken = localStorage.getItem("spotify_access_token");
-  if (storedToken) {
-    token = storedToken;
-    await fetchSpotifyProfile(); // updates login button text to "Logged in as ..."
+  // 2️⃣ Handle Spotify auth redirect
+  await handleAuthRedirect();
+
+  // 3️⃣ Check local token
+  token = localStorage.getItem("spotify_access_token") || null;
+
+  if (token) {
+    // Logged in: fetch profile, update login button, init player
+    await fetchSpotifyProfile(); 
+    initPlayerIfPossible();
   } else {
-    loginBtn.textContent = "Please log in to Spotify"; // show correct text before login
+    // Not logged in: default login text
+    loginBtn.textContent = "Please log in to Spotify";
   }
-
-  await fetchAlbums(); // load albums independently of login
 };
+
   
 </script>
 </body>
 </html>
+
 
 
 
