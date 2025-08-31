@@ -659,23 +659,12 @@ function initPlayerIfPossible(){
   document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
 
   currentAlbumUri = current.album.uri; // set current album for popup
-
-  const duration = current.duration_ms;
-  totalTimeEl.textContent = formatTime(duration);
-
-  player.getCurrentState().then(state => {
-    if (!state) return;
-    const pos = state.position;
-    currentTimeEl.textContent = formatTime(pos);
-    const progressPercent = Math.min(100, (pos / duration) * 100);
-    progressBar.value = progressPercent;
-  });
-}
 const barInfo = document.getElementById("barInfo");
 const progressBar = document.getElementById("progressBar");
 const currentTimeEl = document.getElementById("currentTime");
 const totalTimeEl = document.getElementById("totalTime");
 
+// Event listener
 barInfo.addEventListener("click", () => {
   if (currentAlbumUri) showModal();
 });
@@ -690,10 +679,17 @@ function updateBarFromState(state){
   document.getElementById("barTrack").textContent = current.name || "—";
   document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
 
-  currentAlbumUri = current.album.uri; // set current album for popup
+  currentAlbumUri = current.album.uri;
 
   const duration = current.duration_ms;
   totalTimeEl.textContent = formatTime(duration);
+  
+  const pos = state.position;
+  currentTimeEl.textContent = formatTime(pos);
+  const progressPercent = Math.min(100, (pos / duration) * 100);
+  progressBar.value = progressPercent;
+}
+
 
   player.getCurrentState().then(state => {
     if (!state) return;
@@ -941,4 +937,5 @@ window.onload = async () => {
 </script>
 </body>
 </html>
+
 
