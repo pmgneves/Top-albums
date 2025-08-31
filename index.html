@@ -3,196 +3,301 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Best Albums</title>
+  <title>Spotify Albums by Year</title>
   <style>
-    /* (CSS unchanged from your version) */
-    body { font-family: Arial, sans-serif; margin: 0; background: #111; color: white; overflow-x: auto; overflow-y: auto; }
-    header { position: fixed; top: 0; left: 0; right: 0; height: 50px; background: #111; display: flex; align-items: center; padding: 0 20px; font-size: 20px; z-index: 100; gap: 15px; border-bottom: 2px solid #222; }
-    .spacer { flex: 1; }
-    .login-btn { background: #1DB954; color: #000; border: none; padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: bold; }
-    .decade-btn { background: #222; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-size: 14px; }
-    .main-container { display: flex; margin-top: 0px; }
-    .rank-column { position: fixed; left: 0; top: 50px; width: 30px; bottom: 64px; background: #111; z-index: 50; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
-    #rankScroller { will-change: transform; display: grid; grid-auto-rows: var(--row-h, 252px); padding-top: 0; }
-    .rank-number { height: var(--row-h, 252px); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #ffffff; box-sizing: border-box; width: 100%; position: relative; z-index: 5; }
-    .years-container { display: flex; align-items: flex-start; padding: 0px 10px 80px 60px; gap: 20px; position: relative; }
-    .year-column { flex: 0 0 auto; width: 180px; display: flex; flex-direction: column; align-items: center; position: relative; }
-    .year-title { position: sticky; top: 50px; font-size: 16px; font-weight: bold; background: #111; padding: 8px 5px; border-radius: 5px; text-align: center; width: 100%; z-index: 10; }
-    .albums-wrapper { margin-top: 10px; padding-top: 50px; position: relative; }
-    .album { width: 100%; height: auto; margin-top: 5px; cursor: pointer; position: relative; z-index: 6; }
-    .album img, .album .no-cover { width: 100%; height: 180px; display: block; border-radius: 8px; object-fit: cover; background: #222; }
-    .album-info { height: 72px; margin: 0; padding-top: 4px; font-size: 13px; line-height: 18px; text-align: center; display: flex; flex-direction: column; justify-content: flex-start; }
-    /* highlight rules unchanged */
-    .years-container::before { content: ""; position: absolute; left: 0; right: 0; top: var(--rows-offset,0px); height: var(--stripe-cover,0px); z-index: 1; pointer-events: none; background-image: linear-gradient(to bottom, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.2) 5%, rgba(192,192,192,0.2) 5%, rgba(192,192,192,0.2) 10%, rgba(205,127,50,0.2) 10%, rgba(205,127,50,0.2) 15%, rgba(140,184,245,0.15) 15%, rgba(140,184,245,0.15) 50%, rgba(100,149,237,0.15) 50%, rgba(100,149,237,0.15) 100%); background-size: 100% var(--stripe-block,4000px); background-repeat: no-repeat; filter: blur(6px) saturate(1.05); opacity: 0.95; -webkit-mask-image: linear-gradient(to right, transparent 0px, rgba(0,0,0,1) 60px, rgba(0,0,0,1) calc(100% - 60px), transparent 100%); mask-image: linear-gradient(to right, transparent 0px, rgba(0,0,0,1) 60px, rgba(0,0,0,1) calc(100% - 60px), transparent 100%); }
-    /* modal + player CSS unchanged from your version */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #121212;
+      color: #fff;
+    }
+    header {
+      background: #1db954;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    #albums {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+    }
+    .year-column {
+      flex: 0 0 auto;
+      width: 180px;
+      margin: 0 10px;
+      scroll-snap-align: start;
+    }
+    .year-column h2 {
+      text-align: center;
+      background: #333;
+      margin: 0;
+      padding: 5px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .album {
+      margin: 10px 0;
+      cursor: pointer;
+    }
+    .album img {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+    #albumModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 10;
+      overflow: auto;
+    }
+    #albumModalContent {
+      max-width: 600px;
+      margin: 5% auto;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    #albumModalContent img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    #closeModal {
+      float: right;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    #login-button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: #1db954;
+      border: none;
+      border-radius: 20px;
+      font-size: 1rem;
+      color: #fff;
+      cursor: pointer;
+    }
+    #player-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #282828;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      z-index: 5;
+    }
+    #player-bar img {
+      width: 56px;
+      height: 56px;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+    .track-info {
+      flex-grow: 1;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+    }
+    .controls button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+    #progress-container {
+      flex: 1;
+      margin: 0 10px;
+    }
+    #progress-bar {
+      width: 100%;
+    }
+    .time {
+      font-size: 0.8rem;
+    }
   </style>
 </head>
 <body>
-<header>
-  Top Albums by Year
-  <button class="decade-btn" onclick="scrollToDecade('199')">1990s</button>
-  <button class="decade-btn" onclick="scrollToDecade('200')">2000s</button>
-  <button class="decade-btn" onclick="scrollToDecade('201')">2010s</button>
-  <button class="decade-btn" onclick="scrollToDecade('202')">2020s</button>
-  <div class="spacer"></div>
-  <button id="loginBtn" class="login-btn">Log in with Spotify</button>
-</header>
-
-<div class="main-container">
-  <div class="rank-column" id="rankColumn">
-    <div id="rankScroller"></div>
+  <header>Spotify Albums by Year</header>
+  <button id="login-button">Login with Spotify</button>
+  <div id="albums"></div>
+  <div id="albumModal">
+    <div id="albumModalContent">
+      <span id="closeModal">&times;</span>
+      <h2 id="modalAlbumTitle"></h2>
+      <img id="modalAlbumImage" src="" alt="Album cover" />
+      <ul id="modalTrackList"></ul>
+    </div>
   </div>
-  <div class="years-container" id="yearsContainer"></div>
-</div>
 
-<!-- Modal -->
-<div id="albumModalBackdrop" class="modal-backdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <img id="modalCover" src="" alt="">
-      <div class="modal-title">
-        <div class="name" id="modalAlbumName"></div>
-        <div class="artist" id="modalArtistName"></div>
-      </div>
-      <div style="margin-left:auto;">
-        <button id="modalPlayBtn" class="login-btn" style="padding:6px 12px;">Play</button>
+  <div id="player-bar" style="display:none">
+    <img id="bar-cover" src="" alt="Cover" />
+    <div class="track-info">
+      <div id="bar-title"></div>
+      <div id="bar-artist"></div>
+    </div>
+    <div id="progress-container">
+      <div class="bar-info">
+        <span id="current-time" class="time">0:00</span>
+        <input type="range" id="progress-bar" min="0" max="100" value="0">
+        <span id="total-time" class="time">0:00</span>
       </div>
     </div>
-    <div class="tracks" id="tracksList"></div>
-    <div class="modal-actions">
-      <button id="closeModalBtn" class="close-btn">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- Bottom Player Bar -->
-<div class="player-bar">
-  <div class="track-info" id="barInfo">
-    <img id="barCover" src="" alt="Album Cover" />
-    <div class="track-text">
-      <div id="barTrack" class="track-name">—</div>
-      <div id="barArtist" class="track-artist">—</div>
+    <div class="controls">
+      <button id="prev">⏮️</button>
+      <button id="play">▶️</button>
+      <button id="pause">⏸️</button>
+      <button id="next">⏭️</button>
     </div>
   </div>
 
-  <div class="controls">
-    <button id="prevBtn" class="ctrl-btn" title="Previous">⏮️</button>
-    <button id="playPauseBtn" class="ctrl-btn" title="Play/Pause">▶️</button>
-    <button id="nextBtn" class="ctrl-btn" title="Next">⏭️</button>
-    <div class="progress-container">
-      <span id="currentTime">0:00</span>
-      <input type="range" id="progressBar" min="0" max="100" value="0">
-      <span id="totalTime">0:00</span>
-    </div>
-  </div>
-</div>
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  <script>
+    const clientId = "YOUR_CLIENT_ID";
+    const redirectUri = window.location.origin + window.location.pathname;
+    const scopes = ["streaming", "user-read-email", "user-read-private"];
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://sdk.scdn.co/spotify-player.js"></script>
-<script>
-/* ===================== CONFIG ===================== */
-const CONFIG = {
-  SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
-  SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce",
-  REDIRECT_URI: "https://top-albums.netlify.app",
-  BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth"
-};
+    let accessToken = null;
+    let player;
 
-let token = null;
-let refreshToken = null;
-let albumsData = [];
-let player = null;
-let deviceId = null;
-let currentAlbumUri = null;
+    // declare UI elements early so they're usable later
+    const progressBar = document.getElementById("progress-bar");
+    const currentTimeEl = document.getElementById("current-time");
+    const totalTimeEl = document.getElementById("total-time");
+    const barInfo = document.querySelector(".bar-info");
 
-// 🔧 FIX: Declare these early so they exist when used later
-const barInfo = document.getElementById("barInfo");
-const progressBar = document.getElementById("progressBar");
-const currentTimeEl = document.getElementById("currentTime");
-const totalTimeEl = document.getElementById("totalTime");
+    function login() {
+      const authUrl = `/.netlify/functions/spotify-auth?client_id=${clientId}&redirect_uri=${redirectUri}&scopes=${scopes.join(",")}`;
+      window.location.href = authUrl;
+    }
 
-/* ===================== DATA LOAD ===================== */
-// (functions unchanged from your version)
+    function getTokenFromUrl() {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      return params.get("access_token");
+    }
 
-/* ===================== SPOTIFY WEB PLAYBACK SDK ===================== */
-window.onSpotifyWebPlaybackSDKReady = () => { initPlayerIfPossible(); };
+    function renderAlbums() {
+      const albumsContainer = document.getElementById("albums");
+      for (let year = 2000; year <= 2005; year++) {
+        const column = document.createElement("div");
+        column.className = "year-column";
+        const header = document.createElement("h2");
+        header.textContent = year;
+        column.appendChild(header);
+        for (let i = 0; i < 3; i++) {
+          const album = document.createElement("div");
+          album.className = "album";
+          album.innerHTML = `<img src="https://via.placeholder.com/150?text=Album+${year}-${i+1}" alt="Album">`;
+          album.addEventListener("click", () => openAlbumModal(`Album ${year}-${i+1}`));
+          column.appendChild(album);
+        }
+        albumsContainer.appendChild(column);
+      }
+    }
 
-function initPlayerIfPossible(){
-  if (!window.Spotify) return;
-  if (!token) return;
-  if (player) return;
+    function openAlbumModal(albumTitle) {
+      document.getElementById("modalAlbumTitle").textContent = albumTitle;
+      document.getElementById("modalAlbumImage").src = "https://via.placeholder.com/300";
+      const trackList = document.getElementById("modalTrackList");
+      trackList.innerHTML = "";
+      for (let i = 1; i <= 5; i++) {
+        const li = document.createElement("li");
+        li.textContent = `Track ${i}`;
+        li.addEventListener("click", () => playTrack(`spotify:track:dummy${i}`));
+        trackList.appendChild(li);
+      }
+      document.getElementById("albumModal").style.display = "block";
+    }
 
-  player = new Spotify.Player({
-    name: 'Top Albums Web Player',
-    getOAuthToken: cb => { cb(token); },
-    volume: 0.7
-  });
+    document.getElementById("closeModal").addEventListener("click", () => {
+      document.getElementById("albumModal").style.display = "none";
+    });
 
-  player.addListener('ready', ({ device_id }) => {
-    deviceId = device_id;
-    localStorage.setItem("spotify_device_id", deviceId);
-    transferPlaybackToDevice();
-  });
+    function playTrack(trackUri) {
+      if (!player || !accessToken) return;
+      fetch(`https://api.spotify.com/v1/me/player/play?device_id=${player._options.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ uris: [trackUri] }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
+        },
+      });
+    }
 
-  player.addListener('player_state_changed', state => {
-    if (!state) return;
-    updateBarFromState(state);
-  });
+    function msToTime(ms) {
+      const minutes = Math.floor(ms / 60000);
+      const seconds = Math.floor((ms % 60000) / 1000);
+      return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    }
 
-  player.connect();
-}
+    function initPlayerIfPossible() {
+      if (accessToken && window.Spotify) {
+        player = new Spotify.Player({
+          name: "Web Playback SDK Quick Start Player",
+          getOAuthToken: cb => { cb(accessToken); },
+          volume: 0.5
+        });
 
-function updateBarFromState(state){
-  const current = state.track_window.current_track;
-  if (!current) return;
+        player.addListener("ready", ({ device_id }) => {
+          console.log("Ready with Device ID", device_id);
+          document.getElementById("player-bar").style.display = "flex";
+        });
 
-  document.getElementById("barCover").src = current.album.images?.[0]?.url || "";
-  document.getElementById("barTrack").textContent = current.name || "—";
-  document.getElementById("barArtist").textContent = current.artists?.[0]?.name || "—";
+        player.addListener("player_state_changed", state => {
+          if (!state) return;
+          document.getElementById("bar-title").textContent = state.track_window.current_track.name;
+          document.getElementById("bar-artist").textContent = state.track_window.current_track.artists.map(a => a.name).join(", ");
+          document.getElementById("bar-cover").src = state.track_window.current_track.album.images[0].url;
+          totalTimeEl.textContent = msToTime(state.duration);
+          progressBar.max = state.duration;
+          progressBar.value = state.position;
+          currentTimeEl.textContent = msToTime(state.position);
+        });
 
-  currentAlbumUri = current.album.uri;
+        progressBar.addEventListener("input", () => {
+          player.seek(progressBar.value);
+        });
 
-  const duration = current.duration_ms;
-  totalTimeEl.textContent = formatTime(duration);
+        barInfo.addEventListener("click", e => {
+          const rect = barInfo.getBoundingClientRect();
+          const percent = (e.clientX - rect.left) / rect.width;
+          const seekPosition = percent * progressBar.max;
+          player.seek(seekPosition);
+        });
 
-  const pos = state.position;
-  currentTimeEl.textContent = formatTime(pos);
-  const progressPercent = Math.min(100, (pos / duration) * 100);
-  progressBar.value = progressPercent;
+        document.getElementById("play").onclick = () => { player.resume(); };
+        document.getElementById("pause").onclick = () => { player.pause(); };
+        document.getElementById("next").onclick = () => { player.nextTrack(); };
+        document.getElementById("prev").onclick = () => { player.previousTrack(); };
 
-  document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️";
-}
+        player.connect();
+      }
+    }
 
-function formatTime(ms){
-  const totalSec = Math.floor(ms/1000);
-  const mins = Math.floor(totalSec/60);
-  const secs = totalSec % 60;
-  return `${mins}:${secs.toString().padStart(2,'0')}`;
-}
+    document.getElementById("login-button").addEventListener("click", login);
 
-progressBar.addEventListener("input", async (e) => {
-  if (!player) return;
-  const percent = e.target.value;
-  const state = await player.getCurrentState();
-  if (!state) return;
-  const duration = state.track_window.current_track.duration_ms;
-  const newPos = Math.floor(duration * (percent / 100));
-  player.seek(newPos);
-});
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      accessToken = getTokenFromUrl();
+      if (accessToken) {
+        initPlayerIfPossible();
+      }
+    };
 
-// attach click once
-barInfo.addEventListener("click", () => { if (currentAlbumUri) showModal(); });
-
-/* ===================== CONTROLS ===================== */
-const playPauseBtn = document.getElementById("playPauseBtn");
-const nextBtn = document.getElementById("nextBtn");
-const prevBtn = document.getElementById("prevBtn");
-
-playPauseBtn.addEventListener("click", () => { if (player) player.togglePlay(); });
-nextBtn.addEventListener("click", () => { if (player) player.nextTrack(); });
-prevBtn.addEventListener("click", () => { if (player) player.previousTrack(); });
-
-/* ===================== rest of your code unchanged ===================== */
-</script>
+    renderAlbums();
+  </script>
 </body>
 </html>
