@@ -676,15 +676,13 @@ function renderAlbums() {
   });
 
   requestAnimationFrame(syncRankMetrics);
-  // Scroll to current year (rightmost) after albums are rendered
-const container = document.getElementById("yearsContainer");
 if (container) container.scrollLeft = container.scrollWidth;
 }
 
 function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
 function createNoCover(){const div=document.createElement("div");div.className="no-cover";div.innerText="Album not on Spotify";return div;}
 function scrollToDecade(decadePrefix){
-  const container=document.getElementById("yearsContainer");
+  const container=document.getElementById("yearsContainer");  // Scroll to current year (rightmost) after albums are rendered
   const target=[...container.children].find(col=>col.firstChild.innerText.startsWith(decadePrefix));
   if(target)target.scrollIntoView({behavior:"smooth",inline:"start"});
 }
@@ -949,12 +947,13 @@ if (localStorage.getItem("spotify_access_token")) {
   authenticateSpotify(); // auto popup if not logged in
 }
 
-  fetchAlbums();
+ await fetchAlbums();
 };
   
 </script>
 </body>
 </html>
+
 
 
 
