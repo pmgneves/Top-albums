@@ -457,6 +457,7 @@
     padding: 0 10px;
     border-radius: 0;
     z-index: 1000;
+    display: none; /* hide player by default */
   }
 
   /* Make control buttons bigger for touch */
@@ -570,6 +571,7 @@ const CONFIG = {
 
 let token = null;
 let refreshToken = null;
+let spotifyUsername = null; // will store logged-in user name
 let albumsData = [];
 let player = null;
 let deviceId = null;
@@ -674,6 +676,9 @@ function renderAlbums() {
   });
 
   requestAnimationFrame(syncRankMetrics);
+  // Scroll to current year (rightmost) after albums are rendered
+const container = document.getElementById("yearsContainer");
+if (container) container.scrollLeft = container.scrollWidth;
 }
 
 function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
@@ -710,6 +715,21 @@ async function handleAuthRedirect(){
     }catch(err){ console.error("Error fetching Spotify token:",err); alert("Spotify login failed. Check console."); }
   }
 }
+  async function fetchSpotifyProfile() {
+  if (!token) return;
+  try {
+    const resp = await fetch("https://api.spotify.com/v1/me", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await resp.json();
+    spotifyUsername = data.display_name || data.id || "Unknown";
+    loginBtn.textContent = `Logged in as ${spotifyUsername}`;
+  } catch (e) {
+    console.error("Failed to fetch Spotify profile:", e);
+    loginBtn.textContent = "Log in with Spotify";
+  }
+}
+
 
 // ====== SPOTIFY WEB PLAYBACK SDK ======
 window.onSpotifyWebPlaybackSDKReady = () => { initPlayerIfPossible(); };
@@ -769,7 +789,13 @@ function updateBarFromState(state){
   currentTimeEl.textContent = formatTime(pos);
   progressBar.value = Math.min(100, (pos / duration) * 100);
 }
+// Show player bar when playback starts
+const playerBar = document.querySelector(".player-bar");
+if (playerBar && playerBar.style.display === "none") {
+  playerBar.style.display = "flex";
+}
 
+  
 progressBar.addEventListener("input", async (e) => {
   if (!player) return;
   const percent = e.target.value;
@@ -915,12 +941,21 @@ async function transferPlaybackToDevice(){
 // ====== BOOT ======
 window.onload = async () => {
   await handleAuthRedirect();
+  // check if already logged in
+if (localStorage.getItem("spotify_access_token")) {
+  token = localStorage.getItem("spotify_access_token");
+  await fetchSpotifyProfile();
+} else {
+  authenticateSpotify(); // auto popup if not logged in
+}
+
   fetchAlbums();
 };
   
 </script>
 </body>
 </html>
+
 
 
 
