@@ -2,503 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-<link rel="icon" type="image/png" href="music-icon-192x192.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="music-icon-192x192.png">
   <title>My Best Albums</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #111;
-      color: white;
-      overflow-x: auto;
-      overflow-y: auto;
-    }
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 50px;
-      background: #111;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      font-size: 20px;
-      z-index: 100;
-      gap: 15px;
-      border-bottom: 2px solid #222;
-    }
-    .spacer { flex: 1; }
-    .login-btn {
-      background: #1DB954;
-      color: #000;
-      border: none;
-      padding: 6px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-    .decade-btn {
-      background: #222;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 3px;
-      font-size: 14px;
-    }
-    .main-container {
-      display: flex;
-      margin-top: 0px;
-    }
-    .rank-column {
-      position: fixed;
-      left: 0;
-      top: 50px;
-      width: 30px;
-      bottom: 64px; /* leave space for player bar */
-      background: #111;
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow: hidden;
-    }
-    #rankScroller {
-      will-change: transform;
-      display: grid;
-      grid-auto-rows: var(--row-h, 252px);
-      padding-top: 0;
-    }
-    .rank-number {
-      height: var(--row-h, 252px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: #ffffff;
-      box-sizing: border-box;
-      width: 100%;
-      position: relative;
-      z-index: 5;
-    }
-    .years-container {
-      display: flex;
-      align-items: flex-start;
-      padding: 0px 10px 80px 60px; /* leave bottom space for player bar */
-      gap: 20px;
-      position: relative;
-    }
-    .year-column {
-      flex: 0 0 auto;
-      width: 180px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    .year-title {
-      position: sticky;
-      top: 50px;
-      font-size: 16px;
-      font-weight: bold;
-      background: #111;
-      padding: 8px 5px;
-      border-radius: 5px;
-      text-align: center;
-      width: 100%;
-      z-index: 10;
-    }
-    .albums-wrapper {
-      margin-top: 10px;
-      padding-top: 50px;
-      position: relative;
-    }
-    .album {
-      width: 100%;
-      height: auto;
-      margin-top: 5px;
-      margin-bottom: 0;
-      cursor: pointer;
-      position: relative;
-      z-index: 6;
-    }
-    .album img,
-    .album .no-cover {
-      width: 100%;
-      height: 180px;
-      display: block;
-      padding: 0;
-      margin: 0;
-      border-radius: 8px;
-      object-fit: cover;
-      background: #222;
-    }
-    .album-info {
-      height: 72px;
-      margin: 0;
-      padding-top: 4px;
-      font-size: 13px;
-      line-height: 18px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-    }
-    .albums-wrapper .album:nth-child(1),
-    #rankScroller .rank-number:nth-child(1) {
-      background: rgba(212, 175, 55, 0.2);
-      box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
-    }
-    .albums-wrapper .album:nth-child(2),
-    #rankScroller .rank-number:nth-child(2) {
-      background: rgba(192, 192, 192, 0.2);
-      box-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
-    }
-    .albums-wrapper .album:nth-child(3),
-    #rankScroller .rank-number:nth-child(3) {
-      background: rgba(205, 127, 50, 0.2);
-      box-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
-    }
-    .albums-wrapper .album:nth-child(n + 4):nth-child(-n + 10),
-    #rankScroller .rank-number:nth-child(n + 4):nth-child(-n + 10) {
-      background: rgba(140, 184, 245, 0.15);
-      box-shadow: 0 0 6px rgba(140, 184, 245, 0.35);
-    }
-    .albums-wrapper .album:nth-child(n + 11):nth-child(-n + 20),
-    #rankScroller .rank-number:nth-child(n + 11):nth-child(-n + 20) {
-      background: rgba(100, 149, 237, 0.15);
-      box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
-    }
-    .years-container::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: var(--rows-offset,0px);
-      height: var(--stripe-cover,0px);
-      z-index: 1;
-      pointer-events: none;
-      background-image: linear-gradient(
-        to bottom,
-        rgba(212, 175, 55, 0.2) 0%,
-        rgba(212, 175, 55, 0.2) 5%,
-        rgba(192, 192, 192, 0.2) 5%,
-        rgba(192, 192, 192, 0.2) 10%,
-        rgba(205, 127, 50, 0.2) 10%,
-        rgba(205, 127, 50, 0.2) 15%,
-        rgba(140, 184, 245, 0.15) 15%,
-        rgba(140, 184, 245, 0.15) 50%,
-        rgba(100, 149, 237, 0.15) 50%,
-        rgba(100, 149, 237, 0.15) 100%
-      );
-      background-size: 100% var(--stripe-block,4000px);
-      background-repeat: no-repeat;
-      filter: blur(6px) saturate(1.05);
-      opacity: 0.95;
-      -webkit-mask-image: linear-gradient(
-        to right,
-        transparent 0px,
-        rgba(0, 0, 0, 1) 60px,
-        rgba(0, 0, 0, 1) calc(100% - 60px),
-        transparent 100%
-      );
-      mask-image: linear-gradient(
-        to right,
-        transparent 0px,
-        rgba(0, 0, 0, 1) 60px,
-        rgba(0, 0, 0, 1) calc(100% - 60px),
-        transparent 100%
-      );
-    }
+    body { font-family: Arial, sans-serif; margin:0; background:#111; color:white; overflow-x:auto; overflow-y:auto; }
+    header { position: fixed; top:0; left:0; right:0; height:50px; background:#111; display:flex; align-items:center; padding:0 20px; font-size:20px; z-index:100; gap:15px; border-bottom:2px solid #222; }
+    .spacer { flex:1; }
+    .login-btn { background:#1DB954; color:#000; border:none; padding:6px 10px; cursor:pointer; border-radius:4px; font-size:14px; font-weight:bold; }
+    .decade-btn { background:#222; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-size:14px; }
+    .main-container { display:flex; margin-top:0px; }
+    .rank-column { position: fixed; left:0; top:50px; width:30px; bottom:64px; background:#111; z-index:50; display:flex; flex-direction:column; align-items:center; overflow:hidden; }
+    #rankScroller { will-change: transform; display:grid; grid-auto-rows: var(--row-h,252px); padding-top:0; }
+    .rank-number { height: var(--row-h,252px); display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; box-sizing:border-box; width:100%; position:relative; z-index:5; }
+    .years-container { display:flex; align-items:flex-start; padding:0px 10px 80px 60px; gap:20px; position:relative; }
+    .year-column { flex:0 0 auto; width:180px; display:flex; flex-direction:column; align-items:center; position:relative; }
+    .year-title { position:sticky; top:50px; font-size:16px; font-weight:bold; background:#111; padding:8px 5px; border-radius:5px; text-align:center; width:100%; z-index:10; }
+    .albums-wrapper { margin-top:10px; padding-top:50px; position:relative; }
+    .album { width:100%; height:auto; margin-top:5px; margin-bottom:0; cursor:pointer; position:relative; z-index:6; }
+    .album img, .album .no-cover { width:100%; height:180px; display:block; padding:0; margin:0; border-radius:8px; object-fit:cover; background:#222; }
+    .album-info { height:72px; margin:0; padding-top:4px; font-size:13px; line-height:18px; text-align:center; display:flex; flex-direction:column; justify-content:flex-start; }
+    .albums-wrapper .album:nth-child(1), #rankScroller .rank-number:nth-child(1) { background:rgba(212,175,55,0.2); box-shadow:0 0 8px rgba(212,175,55,0.5); }
+    .albums-wrapper .album:nth-child(2), #rankScroller .rank-number:nth-child(2) { background:rgba(192,192,192,0.2); box-shadow:0 0 8px rgba(192,192,192,0.5); }
+    .albums-wrapper .album:nth-child(3), #rankScroller .rank-number:nth-child(3) { background:rgba(205,127,50,0.2); box-shadow:0 0 8px rgba(205,127,50,0.5); }
+    .albums-wrapper .album:nth-child(n+4):nth-child(-n+10), #rankScroller .rank-number:nth-child(n+4):nth-child(-n+10) { background:rgba(140,184,245,0.15); box-shadow:0 0 6px rgba(140,184,245,0.35); }
+    .albums-wrapper .album:nth-child(n+11):nth-child(-n+20), #rankScroller .rank-number:nth-child(n+11):nth-child(-n+20) { background:rgba(100,149,237,0.15); box-shadow:0 0 6px rgba(100,149,237,0.4); }
 
-    /* --- Modal (album popup) --- */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
+    /* Modal */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:200; }
+    .modal { width:90%; max-width:560px; background:#181818; border-radius:12px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+    .modal-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+    .modal-header img { width:64px; height:64px; border-radius:8px; object-fit:cover; }
+    .modal-title { display:flex; flex-direction:column; gap:4px; }
+    .modal-title .name { font-weight:bold; }
+    .modal-title .artist { color:#ddd; font-size:13px; }
+    .tracks { max-height:60vh; overflow:auto; border-top:1px solid #333; padding-top:8px; }
+    .track { display:flex; align-items:center; justify-content:space-between; padding:8px; border-radius:8px; cursor:pointer; }
+    .track:hover { background:#222; }
+    .modal-actions { display:flex; justify-content:flex-end; margin-top:8px; }
+    .close-btn { background:#333; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
+
+    /* Bottom Player Bar */
+    .player-bar { position:fixed; left:50%; transform:translateX(-50%); bottom:0; width:80%; max-width:960px; height:72px; background:#181818; display:flex; align-items:center; justify-content:space-between; padding:0 12px; z-index:150; border-top:1px solid #333; border-radius:12px 12px 0 0; box-shadow:0 -3px 10px rgba(0,0,0,0.5); }
+    .controls { display:flex; align-items:center; gap:12px; flex:1; justify-content:center; }
+    .ctrl-btn { background:#282828; color:#fff; border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:16px; }
+    .ctrl-btn:hover { background:#3a3a3a; }
+    .track-info { display:flex; align-items:center; gap:10px; cursor:pointer; }
+    .track-info img { width:48px; height:48px; border-radius:4px; object-fit:cover; }
+    .track-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .track-name { font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff; }
+    .track-artist { font-size:12px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* Progress */
+    .progress-container { display:flex; align-items:center; gap:6px; width:300px; }
+    #progressBar { flex:1; -webkit-appearance:none; height:4px; background:#535353; border-radius:2px; cursor:pointer; }
+    #progressBar::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#fff; cursor:pointer; box-shadow:0 0 2px rgba(0,0,0,0.8); }
+    #progressBar::-moz-range-thumb { width:12px; height:12px; border-radius:50%; background:#fff; cursor:pointer; box-shadow:0 0 2px rgba(0,0,0,0.8); }
+    #currentTime,#totalTime { font-size:10px; color:#ccc; width:28px; text-align:center; }
+
+    @media (max-width:768px) {
+      header { position:sticky; top:0; z-index:1000; padding:0 10px; font-size:18px; }
+      .rank-column { position:fixed; top:50px; left:0; width:40px; height:calc(100vh - 50px - 72px); overflow-y:auto; overflow-x:hidden; z-index:900; }
+      .year-title { top:0; font-size:14px; padding:4px 2px; }
+      .years-container { padding-left:50px; padding-top:60px; padding-bottom:80px; gap:10px; }
+      .year-column { width:140px; }
+      .albums-wrapper { margin-top:8px; padding-top:0; }
+      .player-bar { position:fixed; bottom:0; left:0; transform:none; width:100%; max-width:100%; height:72px; padding:0 10px; border-radius:0; z-index:1000; }
+      .ctrl-btn { width:44px; height:44px; font-size:18px; }
+      .progress-container { width:180px; gap:4px; }
+      #progressBar { height:6px; }
+      #currentTime,#totalTime { font-size:12px; width:32px; }
+      .album img, .album .no-cover { height:140px; }
+      .track-info img { width:40px; height:40px; }
+      .track-name { font-size:12px; }
+      .track-artist { font-size:10px; }
     }
-    .modal {
-      width: 90%;
-      max-width: 560px;
-      background: #181818;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .modal-header img {
-      width: 64px;
-      height: 64px;
-      border-radius: 8px;
-      object-fit: cover;
-    }
-    .modal-title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .modal-title .name { font-weight: bold; }
-    .modal-title .artist { color: #ddd; font-size: 13px; }
-    .tracks {
-      max-height: 60vh;
-      overflow: auto;
-      border-top: 1px solid #333;
-      padding-top: 8px;
-    }
-    .track {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .track:hover { background: #222; }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
-    .close-btn {
-      background: #333;
-      color: #fff;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    /* --- Bottom Player Bar --- */
-    .player-bar {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 0;
-  width: 80%;
-  max-width: 960px;
-  height: 72px;
-  background: #181818;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  z-index: 150;
-  border-top: 1px solid #333;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
-  display: none; /* hide by default */
-}
-
-}
-    .controls { display: flex; align-items: center; gap: 12px; }
-    .ctrl-btn {
-      background: #222;
-      color: #fff;
-      border: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 18px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .track-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-.track-info img {
-  width: 48px;
-  height: 48px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-   .track-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.track-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-.track-artist { font-size: 12px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  justify-content: center;
-}
-
-.ctrl-btn {
-  background: #282828;
-  color: #fff;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.ctrl-btn:hover {
-  background: #3a3a3a;
-}
-
-.progress-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 300px;
-}
-
-#progressBar {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 4px;
-  background: #535353;
-  border-radius: 2px;
-  cursor: pointer;
-}
-
-#progressBar::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 0 2px rgba(0,0,0,0.8);
-}
-
-#progressBar::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 0 2px rgba(0,0,0,0.8);
-}
-
-#currentTime, #totalTime {
-  font-size: 10px;
-  color: #ccc;
-  width: 28px;
-  text-align: center;
-}
-    
-/* =================== MOBILE / SMALL SCREEN FIXES =================== */
-@media (max-width: 768px) {
-  /* Header stays on top */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 0 10px;
-    font-size: 18px;
-  }
-  /* Rank column fixed on left */
-  .rank-column {
-    position: fixed;
-    top: 50px; /* below header */
-    left: 0;
-    width: 40px;
-    height: calc(100vh - 50px - 72px); /* full height minus header & player */
-    overflow-y: auto;
-    overflow-x: hidden;
-    z-index: 900;
-  }
-
-  /* Year line stays on top inside each column */
-  .year-title {
-    top: 0; /* inside column */
-    font-size: 14px;
-    padding: 4px 2px;
-  }
-
-  /* Adjust main content to avoid overlapping fixed elements */
-  .years-container {
-    padding-left: 50px; /* space for rank column */
-    padding-top: 60px;  /* space for header */
-    padding-bottom: 80px; /* space for bottom player */
-    gap: 10px;
-  }
-
-  .year-column {
-    width: 140px;
-  }
-
-  .albums-wrapper {
-    margin-top: 8px;
-    padding-top: 0;
-  }
-
-  /* Bottom player bar fixed & full width */
-  .player-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    transform: none;
-    width: 100%;
-    max-width: 100%;
-    height: 72px;
-    padding: 0 10px;
-    border-radius: 0;
-    z-index: 1000;
-    display: none; /* hide player by default */
-  }
-
-  /* Make control buttons bigger for touch */
-  .ctrl-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
-  }
-
-  .progress-container {
-    width: 180px;
-    gap: 4px;
-  }
-
-  #progressBar {
-    height: 6px;
-  }
-
-  #currentTime, #totalTime {
-    font-size: 12px;
-    width: 32px;
-  }
-
-  /* Make album covers responsive */
-  .album img,
-  .album .no-cover {
-    height: 140px;
-  }
-
-  .track-info img {
-    width: 40px;
-    height: 40px;
-  }
-
-  .track-name { font-size: 12px; }
-  .track-artist { font-size: 10px; }
-}
-
   </style>
 </head>
 <body>
@@ -513,9 +91,7 @@
 </header>
 
 <div class="main-container">
-  <div class="rank-column" id="rankColumn">
-    <div id="rankScroller"></div>
-  </div>
+  <div class="rank-column" id="rankColumn"><div id="rankScroller"></div></div>
   <div class="years-container" id="yearsContainer"></div>
 </div>
 
@@ -548,7 +124,6 @@
       <div id="barArtist" class="track-artist">—</div>
     </div>
   </div>
-
   <div class="controls">
     <button id="prevBtn" class="ctrl-btn" title="Previous">⏮️</button>
     <button id="playPauseBtn" class="ctrl-btn" title="Play/Pause">▶️</button>
@@ -564,422 +139,133 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://sdk.scdn.co/spotify-player.js"></script>
 <script>
-/* ===================== CONFIG ===================== */
+/* ===== CONFIG ===== */
 const CONFIG = {
   SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
-  SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce", // Public is OK
-  REDIRECT_URI: "https://top-albums.netlify.app",         // Must match Spotify app settings
+  SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce",
+  REDIRECT_URI: "https://top-albums.netlify.app",
   BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth"
 };
+let token=null, albumsData=[], player=null, deviceId=null, currentAlbumUri=null, progressInterval=null, spotifyUsername=null;
 
-let token = null;
-let refreshToken = null;
-let spotifyUsername = null; // will store logged-in user name
-let albumsData = [];
-let player = null;
-let deviceId = null;
-let currentAlbumUri = null;
-let progressInterval = null;
+/* ===== DOM ===== */
+const yearsContainer=document.getElementById("yearsContainer"), rankScroller=document.getElementById("rankScroller");
+const barInfo=document.getElementById("barInfo"), progressBar=document.getElementById("progressBar");
+const currentTimeEl=document.getElementById("currentTime"), totalTimeEl=document.getElementById("totalTime");
+const playPauseBtn=document.getElementById("playPauseBtn"), nextBtn=document.getElementById("nextBtn"), prevBtn=document.getElementById("prevBtn");
+const modalBackdrop=document.getElementById("albumModalBackdrop"), closeModalBtn=document.getElementById("closeModalBtn");
+const modalCover=document.getElementById("modalCover"), modalAlbumName=document.getElementById("modalAlbumName"), modalArtistName=document.getElementById("modalArtistName"), tracksList=document.getElementById("tracksList");
+const modalPlayBtn=document.getElementById("modalPlayBtn"), loginBtn=document.getElementById("loginBtn");
 
-// ====== DOM ELEMENTS ======
-const barInfo = document.getElementById("barInfo");
-const progressBar = document.getElementById("progressBar");
-const currentTimeEl = document.getElementById("currentTime");
-const totalTimeEl = document.getElementById("totalTime");
-const playPauseBtn = document.getElementById("playPauseBtn");
-const nextBtn = document.getElementById("nextBtn");
-const prevBtn = document.getElementById("prevBtn");
-const modalBackdrop = document.getElementById("albumModalBackdrop");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const modalCover = document.getElementById("modalCover");
-const modalAlbumName = document.getElementById("modalAlbumName");
-const modalArtistName = document.getElementById("modalArtistName");
-const tracksList = document.getElementById("tracksList");
-const modalPlayBtn = document.getElementById("modalPlayBtn");
-const loginBtn = document.getElementById("loginBtn");
-
-// ====== DOM EVENT LISTENERS ======
-barInfo.addEventListener("click", () => { if (currentAlbumUri) showModal(); });
-playPauseBtn.addEventListener("click", () => { if (player) player.togglePlay(); });
-nextBtn.addEventListener("click", () => { if (player) player.nextTrack(); });
-prevBtn.addEventListener("click", () => { if (player) player.previousTrack(); });
-closeModalBtn.addEventListener("click", hideModal);
-modalBackdrop.addEventListener("click", (e) => { if (e.target === modalBackdrop) hideModal(); });
-modalPlayBtn.addEventListener("click", () => { if (currentAlbumUri) startAlbumPlayback(currentAlbumUri); });
-loginBtn.addEventListener("click", authenticateSpotify);
-
-// ====== DATA LOAD ======
-async function fetchAlbums() {
-  try {
-    const response = await fetch(CONFIG.SHEET_CSV_URL);
-    const text = await response.text();
-    Papa.parse(text, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        albumsData = results.data;
-        renderAlbums();
-      },
-    });
-  } catch (err) {
-    console.error("Error fetching CSV:", err);
-  }
-}
-
-function renderAlbums() {
-  const container = document.getElementById("yearsContainer");
-  const rankScroller = document.getElementById("rankScroller");
-  container.innerHTML = "";
-  rankScroller.innerHTML = "";
-
-  const years = [...new Set(albumsData.map(a => a.Year))].sort();
-  let globalRank = 1;
-
-  years.forEach(year => {
-    const yearCol = document.createElement("div");
-    yearCol.className = "year-column";
-
-    const yearDiv = document.createElement("div");
-    yearDiv.className = "year-title";
-    yearDiv.innerText = year;
-    yearCol.appendChild(yearDiv);
-
-    const albumsWrapper = document.createElement("div");
-    albumsWrapper.className = "albums-wrapper";
-
-    const albumsOfYear = albumsData
-      .filter(a => a.Year === year)
-      .sort((a,b)=>Number(a.Rank)-Number(b.Rank));
-
-    albumsOfYear.forEach(a=>{
-      const [artist, albumTitle] = (a["Album-Artist"]?.split(" - ") || ["Unknown","Unknown"]).map(s=>s.trim());
-      const div = document.createElement("div");
-      div.className = "album";
-
-      const infoDiv = document.createElement("div");
-      infoDiv.className = "album-info";
-      infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
-
-      const cover = a.CoverURL ? createCoverImg(a.CoverURL) : createNoCover();
-      div.appendChild(cover);
-      div.appendChild(infoDiv);
-
-      div.onclick = ()=> openAlbumPopup(a, artist, albumTitle);
-
-      albumsWrapper.appendChild(div);
-
-      const rankDiv = document.createElement("div");
-      rankDiv.className = "rank-number";
-      rankDiv.innerText = globalRank++;
-      rankScroller.appendChild(rankDiv);
-    });
-
-    yearCol.appendChild(albumsWrapper);
-    container.appendChild(yearCol);
-  });
-
-  requestAnimationFrame(syncRankMetrics);
-if (container) container.scrollLeft = container.scrollWidth;
-}
-
-function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
-function createNoCover(){const div=document.createElement("div");div.className="no-cover";div.innerText="Album not on Spotify";return div;}
-function scrollToDecade(decadePrefix){
-  const container=document.getElementById("yearsContainer");  // Scroll to current year (rightmost) after albums are rendered
-  const target=[...container.children].find(col=>col.firstChild.innerText.startsWith(decadePrefix));
-  if(target)target.scrollIntoView({behavior:"smooth",inline:"start"});
-}
-
-// ====== AUTH (PKCE) ======
-function generateRandomString(length){let text="";const possible="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";for(let i=0;i<length;i++){text+=possible.charAt(Math.floor(Math.random()*possible.length));}return text;}
-async function generateCodeChallenge(codeVerifier){const encoder=new TextEncoder();const data=encoder.encode(codeVerifier);const digest=await window.crypto.subtle.digest("SHA-256",data);return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
-function authenticateSpotify(){const codeVerifier=generateRandomString(128);localStorage.setItem("code_verifier",codeVerifier);generateCodeChallenge(codeVerifier).then(codeChallenge=>{const scope="user-modify-playback-state user-read-playback-state streaming";const authUrl=`https://accounts.spotify.com/authorize?response_type=code&client_id=${CONFIG.SPOTIFY_CLIENT_ID}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&code_challenge_method=S256&code_challenge=${codeChallenge}`;window.location=authUrl;});}
-async function handleAuthRedirect(){
-  const params=new URLSearchParams(window.location.search);
-  const code=params.get("code");
-  const storedVerifier=localStorage.getItem("code_verifier");
-
-  const existing = localStorage.getItem("spotify_access_token");
-  if (existing) { token = existing; initPlayerIfPossible(); }
-
-  if(code && storedVerifier){
-    try{
-      const res = await fetch(`${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
-      const data=await res.json();
-      if(data.access_token){
-        token=data.access_token;
-        localStorage.setItem("spotify_access_token", token);
-        localStorage.removeItem("code_verifier");
-        window.history.replaceState({},document.title,CONFIG.REDIRECT_URI);
-        initPlayerIfPossible();
-      } else { console.error("Spotify token error:",data); alert("Spotify login failed. Check console."); }
-    }catch(err){ console.error("Error fetching Spotify token:",err); alert("Spotify login failed. Check console."); }
-  }
-}
-  async function fetchSpotifyProfile() {
-  if (!token) return;
-  try {
-    const resp = await fetch("https://api.spotify.com/v1/me", {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    const data = await resp.json();
-    spotifyUsername = data.display_name || data.id || "Unknown";
-    loginBtn.textContent = `Logged in as ${spotifyUsername}`;
-  } catch (e) {
-    console.error("Failed to fetch Spotify profile:", e);
-    loginBtn.textContent = "Log in with Spotify";
-  }
-}
-
-
-// ====== SPOTIFY WEB PLAYBACK SDK ======
-window.onSpotifyWebPlaybackSDKReady = () => { initPlayerIfPossible(); };
-
-function initPlayerIfPossible(){
-  if (!window.Spotify || !token || player) return;
-
-  player = new Spotify.Player({
-    name: 'Top Albums Web Player',
-    getOAuthToken: cb => { cb(token); },
-    volume: 0.7
-  });
-
-  player.addListener('initialization_error', ({ message }) => console.error('init_error', message));
-  player.addListener('authentication_error', ({ message }) => console.error('auth_error', message));
-  player.addListener('account_error', ({ message }) => console.error('account_error', message));
-  player.addListener('playback_error', ({ message }) => console.error('playback_error', message));
-
-  player.addListener('ready', ({ device_id }) => {
-    console.log('Ready with Device ID', device_id);
-    deviceId = device_id;
-    localStorage.setItem("spotify_device_id", deviceId);
-    transferPlaybackToDevice();
-  });
-
-  // Use single, top-level updateBarFromState
-player.addListener('player_state_changed', state => { 
-  if (!state) return; 
-  updateBarFromState(state); 
-
-  // Start or stop the automatic progress updater
-  if (state.paused) stopProgressUpdater();
-  else startProgressUpdater();
-
-  document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️"; 
+/* ===== EVENTS ===== */
+barInfo.addEventListener("click",()=>{ if(currentAlbumUri) showModal(); });
+playPauseBtn.addEventListener("click",()=>{ if(player) player.togglePlay(); });
+nextBtn.addEventListener("click",()=>{ if(player) player.nextTrack(); });
+prevBtn.addEventListener("click",()=>{ if(player) player.previousTrack(); });
+closeModalBtn.addEventListener("click",hideModal);
+modalBackdrop.addEventListener("click",(e)=>{ if(e.target===modalBackdrop) hideModal(); });
+modalPlayBtn.addEventListener("click",()=>{ if(currentAlbumUri) startAlbumPlayback(currentAlbumUri); });
+loginBtn.addEventListener("click",authenticateSpotify);
+progressBar.addEventListener("input",async (e)=>{
+  if(!player) return;
+  const state=await player.getCurrentState(); if(!state||!state.track_window.current_track) return;
+  player.seek(Math.floor(state.track_window.current_track.duration_ms*(e.target.value/100)));
 });
-  
-  player.connect();
+
+/* ===== DATA ===== */
+async function fetchAlbums(){
+  try {
+    const text=await (await fetch(CONFIG.SHEET_CSV_URL)).text();
+    Papa.parse(text,{header:true,skipEmptyLines:true,complete:(res)=>{ albumsData=res.data; renderAlbums(); }});
+  } catch(e){ console.error(e); }
 }
 
-// ====== PROGRESS BAR & TRACK INFO ======
+function renderAlbums(){
+  yearsContainer.innerHTML=""; rankScroller.innerHTML="";
+  const years=[...new Set(albumsData.map(a=>a.Year))].sort();
+  let globalRank=1;
+  years.forEach(year=>{
+    const col=document.createElement("div"); col.className="year-column";
+    const title=document.createElement("div"); title.className="year-title"; title.innerText=year; col.appendChild(title);
+    const wrapper=document.createElement("div"); wrapper.className="albums-wrapper";
+    albumsData.filter(a=>a.Year===year).sort((a,b)=>Number(a.Rank)-Number(b.Rank)).forEach(a=>{
+      const [artist,albumTitle]=(a["Album-Artist"]?.split(" - ")||["Unknown","Unknown"]).map(s=>s.trim());
+      const div=document.createElement("div"); div.className="album";
+      const info=document.createElement("div"); info.className="album-info"; info.innerHTML=`${albumTitle}<br><small>${artist}</small>`;
+      div.appendChild(a.CoverURL?createCoverImg(a.CoverURL):createNoCover()); div.appendChild(info);
+      div.onclick=()=>openAlbumPopup(a,artist,albumTitle); wrapper.appendChild(div);
+      const rankDiv=document.createElement("div"); rankDiv.className="rank-number"; rankDiv.innerText=globalRank; rankScroller.appendChild(rankDiv);
+      globalRank++;
+    });
+    col.appendChild(wrapper); yearsContainer.appendChild(col);
+  });
+}
+
+function createCoverImg(url){ const img=document.createElement("img"); img.src=url; img.alt="Cover"; return img; }
+function createNoCover(){ const div=document.createElement("div"); div.className="no-cover"; return div; }
+
+/* ===== MODAL ===== */
+function openAlbumPopup(album,artist,title){
+  modalCover.src=album.CoverURL||""; modalAlbumName.textContent=title; modalArtistName.textContent=artist;
+  tracksList.innerHTML=""; if(album["Tracks-URIs"]){ album["Tracks-URIs"].split(",").forEach(uri=>{ const tdiv=document.createElement("div"); tdiv.className="track"; tdiv.textContent=uri; tracksList.appendChild(tdiv); }); }
+  modalBackdrop.style.display="flex"; currentAlbumUri=album.SpotifyURI||null;
+}
+function showModal(){ modalBackdrop.style.display="flex"; }
+function hideModal(){ modalBackdrop.style.display="none"; }
+
+/* ===== SPOTIFY ===== */
+async function authenticateSpotify(){
+  window.location.href=`https://accounts.spotify.com/authorize?client_id=${CONFIG.SPOTIFY_CLIENT_ID}&response_type=token&redirect_uri=${CONFIG.REDIRECT_URI}&scope=user-read-playback-state user-modify-playback-state`;
+}
+
+function startAlbumPlayback(uri){ if(!player||!uri) return; player.play({context_uri:uri}); hideModal(); }
+
 function updateBarFromState(state){
-  if (!state) return;
+  const bar=document.querySelector(".player-bar");
+  if(!state||!state.track_window.current_track){ bar.style.display="none"; return; }
+  bar.style.display="flex";
+  const t=state.track_window.current_track;
+  document.getElementById("barCover").src=t.album.images?.[0]?.url||"";
+  document.getElementById("barTrack").textContent=t.name||"—";
+  document.getElementById("barArtist").textContent=t.artists?.[0]?.name||"—";
+  currentAlbumUri=t.album.uri;
+  const duration=t.duration_ms; totalTimeEl.textContent=formatTime(duration);
+  const pos=state.position; currentTimeEl.textContent=formatTime(pos);
+  progressBar.value=Math.min(100,(pos/duration)*100);
+  playPauseBtn.textContent=state.paused?"▶️":"⏸️";
+  state.paused?stopProgressUpdater():startProgressUpdater();
+}
 
-  // Show the player bar only if hidden
-  const playerBar = document.querySelector(".player-bar");
-  if (playerBar && playerBar.style.display === "none") {
-    playerBar.style.display = "flex";
+function formatTime(ms){ const s=Math.floor(ms/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; }
+
+function startProgressUpdater(){ stopProgressUpdater(); progressInterval=setInterval(async()=>{ if(!player) return; const state=await player.getCurrentState(); if(!state||!state.track_window.current_track) return; updateBarFromState(state); },1000);}
+function stopProgressUpdater(){ if(progressInterval){ clearInterval(progressInterval); progressInterval=null; }}
+
+/* ===== SCROLL ===== */
+function scrollToDecade(d){ const el=document.querySelector(`.year-title[innerText^='${d}']`); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+
+/* ===== INIT ===== */
+window.addEventListener("load",()=>{
+  fetchAlbums();
+  if(window.location.hash.includes("access_token")){
+    token=new URLSearchParams(window.location.hash.substring(1)).get("access_token");
+    loginBtn.style.display="none";
+    initSpotifyPlayer();
   }
-
-  const current = state.track_window.current_track;
-  if (!current) return;
-
-  const cover = current.album.images?.[0]?.url || "";
-  document.getElementById("barCover").src = cover;
-  document.getElementById("barTrack").textContent = current.name || "—";
-  document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
-
-  currentAlbumUri = current.album.uri;
-
-  const duration = current.duration_ms;
-  totalTimeEl.textContent = formatTime(duration);
-
-  const pos = state.position;
-  currentTimeEl.textContent = formatTime(pos);
-  progressBar.value = Math.min(100, (pos / duration) * 100);
-}
-
-// Show player bar when playback starts
-const playerBar = document.querySelector(".player-bar");
-if (playerBar && playerBar.style.display === "none") {
-  playerBar.style.display = "flex";
-}
-
-  
-progressBar.addEventListener("input", async (e) => {
-  if (!player) return;
-  const percent = e.target.value;
-  const state = await player.getCurrentState();
-  if (!state || !state.track_window.current_track) return;
-  const duration = state.track_window.current_track.duration_ms;
-  const newPos = Math.floor(duration * (percent / 100));
-  player.seek(newPos);
 });
 
-// ====== FORMAT TIME ======
-function formatTime(ms){
-  const totalSec = Math.floor(ms/1000);
-  const mins = Math.floor(totalSec/60);
-  const secs = totalSec % 60;
-  return `${mins}:${secs.toString().padStart(2,'0')}`;
-}
-//Update the progress bar
-function startProgressUpdater() {
-  if (progressInterval) clearInterval(progressInterval);
-  progressInterval = setInterval(async () => {
-    if (!player) return;
-    const state = await player.getCurrentState();
-    if (!state || !state.track_window.current_track) return;
-
-    const pos = state.position;
-    const duration = state.track_window.current_track.duration_ms;
-    currentTimeEl.textContent = formatTime(pos);
-    totalTimeEl.textContent = formatTime(duration);
-    progressBar.value = Math.min(100, (pos / duration) * 100);
-  }, 500); // updates every 0.5 seconds
-}
-
-function stopProgressUpdater() {
-  if (progressInterval) clearInterval(progressInterval);
-}
-
-// ====== MODAL ======
-function showModal(){ modalBackdrop.style.display = "flex"; }
-function hideModal(){ modalBackdrop.style.display = "none"; }
-async function openAlbumPopup(albumRow, artist, albumTitle){
-  if (!token) { authenticateSpotify(); return; }
-  currentAlbumUri = albumRow.SpotifyURI || null;
-  if (!currentAlbumUri) { alert("No Spotify album URI for this item."); return; }
-
-  modalAlbumName.textContent = albumTitle || "—";
-  modalArtistName.textContent = artist || "—";
-  if (albumRow.CoverURL) modalCover.src = albumRow.CoverURL; else modalCover.removeAttribute("src");
-
-  tracksList.innerHTML = "Loading tracks…";
-  const albumId = uriToId(currentAlbumUri);
-  try {
-    const resp = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`, {
-      headers: { "Authorization": `Bearer ${token}` }
+function initSpotifyPlayer(){
+  window.onSpotifyWebPlaybackSDKReady=()=>{
+    player=new Spotify.Player({
+      name:"Top Albums Player",
+      getOAuthToken:cb=>cb(token),
+      volume:0.5
     });
-    const data = await resp.json();
-    const items = data.items || [];
-    if (!items.length) { tracksList.innerHTML = "<div style='color:#bbb'>No tracks found.</div>"; }
-    else {
-      tracksList.innerHTML = "";
-      items.forEach((t, idx) => {
-        const div = document.createElement("div");
-        div.className = "track";
-        const mins = Math.floor((t.duration_ms||0)/60000);
-        const secs = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
-        div.innerHTML = `<div>#${(t.track_number||idx+1)} — ${t.name}</div><div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>`;
-        div.onclick = () => startTrackPlayback(currentAlbumUri, t.uri);
-        tracksList.appendChild(div);
-      });
-    }
-  } catch (e) { console.error(e); tracksList.innerHTML = "<div style='color:#f77'>Failed to load tracks</div>"; }
-
-  showModal();
+    player.addListener("ready",({device_id})=>{ deviceId=device_id; console.log("Ready with Device ID",device_id); });
+    player.addListener("player_state_changed",state=>updateBarFromState(state));
+    player.connect();
+  };
 }
-
-// ====== PLAYBACK HELPERS ======
-function uriToId(uri) {
-  if (!uri) return null;
-  if (uri.startsWith("spotify:album:")) return uri.split(":")[2];
-  const match = uri.match(/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
-  if (match) return match[1];
-  return null;
-}
-async function startAlbumPlayback(albumUri) {
-  if (!token || !deviceId) return;
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
-    body: JSON.stringify({ context_uri: albumUri })
-  }).catch(e => console.error(e));
-}
-async function startTrackPlayback(albumUri, trackUri) {
-  if (!token || !deviceId) return;
-  const offset = trackUri ? { uri: trackUri } : undefined;
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ context_uri: albumUri, offset: offset })
-  }).catch(e => console.error(e));
-}
-
-// ====== LAYOUT SYNC ======
-function syncRankMetrics(){
-  const firstAlbum=document.querySelector(".albums-wrapper .album");
-  const rankScroller=document.getElementById("rankScroller");
-  const firstYearTitle=document.querySelector(".year-title");
-  const yearsContainer=document.getElementById("yearsContainer");
-  if(!firstAlbum||!rankScroller||!firstYearTitle||!yearsContainer)return;
-  const albumContentH=firstAlbum.getBoundingClientRect().height;
-  const albumMarginTop=parseFloat(getComputedStyle(firstAlbum).marginTop||"0");
-  const totalRowH=albumContentH+albumMarginTop;
-  rankScroller.style.setProperty("--row-h",totalRowH+"px");
-  rankScroller.style.gridAutoRows=totalRowH+"px";
-  document.documentElement.style.setProperty("--row-h",totalRowH+"px");
-  const yearTitleH=firstYearTitle.getBoundingClientRect().height;
-  const wrapperMarginTop=parseFloat(getComputedStyle(firstAlbum.parentElement).marginTop||"0");
-  const rowsOffsetFixed=yearTitleH+wrapperMarginTop;
-  rankScroller.style.paddingTop=rowsOffsetFixed+"px";
-  const yearsRect=yearsContainer.getBoundingClientRect();
-  const firstAlbumRect=firstAlbum.getBoundingClientRect();
-  const rowsOffsetForCSS=firstAlbumRect.top-yearsRect.top;
-  document.documentElement.style.setProperty("--rows-offset",Math.max(0,rowsOffsetForCSS)+"px");
-  const totalAlbums=document.querySelectorAll("#rankScroller .rank-number").length;
-  const rowsToCover=Math.min(totalAlbums,20);
-  const stripeCoverHeight=rowsToCover*totalRowH;
-  document.documentElement.style.setProperty("--stripe-block",totalRowH*20+"px");
-  document.documentElement.style.setProperty("--stripe-cover",stripeCoverHeight+"px");
-}
-window.addEventListener("scroll",()=>{ const rankScroller=document.getElementById("rankScroller"); const offset=parseFloat(rankScroller.dataset.offsetTop||0); rankScroller.style.transform=`translateY(${offset-window.scrollY}px)`; },{passive:true});
-window.addEventListener("resize",syncRankMetrics);
-
-// ====== PLAYER CONNECT ======
-async function transferPlaybackToDevice(){
-  try {
-    await fetch("https://api.spotify.com/v1/me/player", {
-      method: "PUT",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
-      body: JSON.stringify({ device_ids: [deviceId], play: false })
-    });
-  } catch (e) { console.error('transferPlaybackToDevice', e); }
-}
-
-// ====== BOOT ======
-window.onload = async () => {
-  // 1️⃣ Render albums immediately
-  await fetchAlbums();
-
-  // 2️⃣ Handle Spotify auth redirect
-  await handleAuthRedirect();
-
-  // 3️⃣ Check local token
-  token = localStorage.getItem("spotify_access_token") || null;
-
-  if (token) {
-    // Logged in: fetch profile, update login button, init player
-    await fetchSpotifyProfile(); 
-    initPlayerIfPossible();
-  } else {
-    // Not logged in: default login text
-    loginBtn.textContent = "Please log in to Spotify";
-  }
-};
-
-  
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
