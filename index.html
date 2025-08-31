@@ -301,6 +301,9 @@
   border-top: 1px solid #333;
   border-radius: 12px 12px 0 0;
   box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
+  display: none; /* hide by default */
+}
+
 }
     .controls { display: flex; align-items: center; gap: 12px; }
     .ctrl-btn {
@@ -938,21 +941,24 @@ async function transferPlaybackToDevice(){
 
 // ====== BOOT ======
 window.onload = async () => {
-  await handleAuthRedirect();
-  // check if already logged in
-if (localStorage.getItem("spotify_access_token")) {
-  token = localStorage.getItem("spotify_access_token");
-  await fetchSpotifyProfile();
-} else {
-  authenticateSpotify(); // auto popup if not logged in
-}
+  await handleAuthRedirect(); // handle redirect after Spotify login
 
- await fetchAlbums();
+  // Check if user is already logged in
+  const storedToken = localStorage.getItem("spotify_access_token");
+  if (storedToken) {
+    token = storedToken;
+    await fetchSpotifyProfile(); // updates login button text to "Logged in as ..."
+  } else {
+    loginBtn.textContent = "Please log in to Spotify"; // show correct text before login
+  }
+
+  await fetchAlbums(); // load albums independently of login
 };
   
 </script>
 </body>
 </html>
+
 
 
 
