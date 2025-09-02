@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -6,9 +6,10 @@
     name="viewport"
     content="width=device-width, initial-scale=1.0"
   />
-<link rel="icon" type="image/png" href="music-icon-192x192.png">
+  <link rel="icon" type="image/png" href="music-icon-192x192.png">
   <title>My Best Albums</title>
   <style>
+    /* (your original CSS left unchanged) */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -285,23 +286,23 @@
 
     /* --- Bottom Player Bar --- */
     .player-bar {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 0;
-  width: 80%;
-  max-width: 960px;
-  height: 72px;
-  background: #181818;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  z-index: 150;
-  border-top: 1px solid #333;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
-}
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: 80%;
+      max-width: 960px;
+      height: 72px;
+      background: #181818;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 150;
+      border-top: 1px solid #333;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
+    }
     .controls { display: flex; align-items: center; gap: 12px; }
     .ctrl-btn {
       background: #222;
@@ -314,186 +315,186 @@
       font-size: 16px;
     }
     .track-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-.track-info img {
-  width: 48px;
-  height: 48px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-   .track-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.track-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-.track-artist { font-size: 12px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .track-info img {
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+    .track-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .track-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+    .track-artist { font-size: 12px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  justify-content: center;
-}
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+    }
 
-.ctrl-btn {
-  background: #282828;
-  color: #fff;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 16px;
-}
+    .ctrl-btn {
+      background: #282828;
+      color: #fff;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+    }
 
-.ctrl-btn:hover {
-  background: #3a3a3a;
-}
+    .ctrl-btn:hover {
+      background: #3a3a3a;
+    }
 
-.progress-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 300px;
-}
+    .progress-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 300px;
+    }
 
-#progressBar {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 4px;
-  background: #535353;
-  border-radius: 2px;
-  cursor: pointer;
-}
+    #progressBar {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      background: #535353;
+      border-radius: 2px;
+      cursor: pointer;
+    }
 
-#progressBar::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 0 2px rgba(0,0,0,0.8);
-}
+    #progressBar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 2px rgba(0,0,0,0.8);
+    }
 
-#progressBar::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 0 2px rgba(0,0,0,0.8);
-}
+    #progressBar::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 2px rgba(0,0,0,0.8);
+    }
 
-#currentTime, #totalTime {
-  font-size: 10px;
-  color: #ccc;
-  width: 28px;
-  text-align: center;
-}
-    
-/* =================== MOBILE / SMALL SCREEN FIXES =================== */
-@media (max-width: 768px) {
-  /* Header stays on top */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 0 10px;
-    font-size: 18px;
-  }
-  /* Rank column fixed on left */
-  .rank-column {
-    position: fixed;
-    top: 50px; /* below header */
-    left: 0;
-    width: 40px;
-    height: calc(100vh - 50px - 72px); /* full height minus header & player */
-    overflow-y: auto;
-    overflow-x: hidden;
-    z-index: 900;
-  }
+    #currentTime, #totalTime {
+      font-size: 10px;
+      color: #ccc;
+      width: 28px;
+      text-align: center;
+    }
 
-  /* Year line stays on top inside each column */
-  .year-title {
-    top: 0; /* inside column */
-    font-size: 14px;
-    padding: 4px 2px;
-  }
+    /* =================== MOBILE / SMALL SCREEN FIXES =================== */
+    @media (max-width: 768px) {
+      /* Header stays on top */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        padding: 0 10px;
+        font-size: 18px;
+      }
+      /* Rank column fixed on left */
+      .rank-column {
+        position: fixed;
+        top: 50px; /* below header */
+        left: 0;
+        width: 40px;
+        height: calc(100vh - 50px - 72px); /* full height minus header & player */
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 900;
+      }
 
-  /* Adjust main content to avoid overlapping fixed elements */
-  .years-container {
-    padding-left: 50px; /* space for rank column */
-    padding-top: 60px;  /* space for header */
-    padding-bottom: 80px; /* space for bottom player */
-    gap: 10px;
-  }
+      /* Year line stays on top inside each column */
+      .year-title {
+        top: 0; /* inside column */
+        font-size: 14px;
+        padding: 4px 2px;
+      }
 
-  .year-column {
-    width: 140px;
-  }
+      /* Adjust main content to avoid overlapping fixed elements */
+      .years-container {
+        padding-left: 50px; /* space for rank column */
+        padding-top: 60px;  /* space for header */
+        padding-bottom: 80px; /* space for bottom player */
+        gap: 10px;
+      }
 
-  .albums-wrapper {
-    margin-top: 8px;
-    padding-top: 0;
-  }
+      .year-column {
+        width: 140px;
+      }
 
-  /* Bottom player bar fixed & full width */
-  .player-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    transform: none;
-    width: 100%;
-    max-width: 100%;
-    height: 72px;
-    padding: 0 10px;
-    border-radius: 0;
-    z-index: 1000;
-  }
+      .albums-wrapper {
+        margin-top: 8px;
+        padding-top: 0;
+      }
 
-  /* Make control buttons bigger for touch */
-  .ctrl-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
-  }
+      /* Bottom player bar fixed & full width */
+      .player-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        height: 72px;
+        padding: 0 10px;
+        border-radius: 0;
+        z-index: 1000;
+      }
 
-  .progress-container {
-    width: 180px;
-    gap: 4px;
-  }
+      /* Make control buttons bigger for touch */
+      .ctrl-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
 
-  #progressBar {
-    height: 6px;
-  }
+      .progress-container {
+        width: 180px;
+        gap: 4px;
+      }
 
-  #currentTime, #totalTime {
-    font-size: 12px;
-    width: 32px;
-  }
+      #progressBar {
+        height: 6px;
+      }
 
-  /* Make album covers responsive */
-  .album img,
-  .album .no-cover {
-    height: 140px;
-  }
+      #currentTime, #totalTime {
+        font-size: 12px;
+        width: 32px;
+      }
 
-  .track-info img {
-    width: 40px;
-    height: 40px;
-  }
+      /* Make album covers responsive */
+      .album img,
+      .album .no-cover {
+        height: 140px;
+      }
 
-  .track-name { font-size: 12px; }
-  .track-artist { font-size: 10px; }
-}
+      .track-info img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .track-name { font-size: 12px; }
+      .track-artist { font-size: 10px; }
+    }
 
   </style>
 </head>
@@ -558,7 +559,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://sdk.scdn.co/spotify-player.js"></script>
+
 <script>
 /* ===================== CONFIG ===================== */
 const CONFIG = {
@@ -674,31 +675,34 @@ function renderAlbums() {
     container.appendChild(yearCol);
   });
 
-    requestAnimationFrame(syncRankMetrics);
+  // Ensure layout metrics are calculated first, then scroll.
+  requestAnimationFrame(() => {
+    syncRankMetrics();
 
-  // ===== Scroll to current year or latest available =====
-  const currentYear = new Date().getFullYear().toString();
-  const container = document.getElementById("yearsContainer");
-  const yearCols = [...container.children];
+    // ===== Scroll to current year or latest available =====
+    const currentYear = new Date().getFullYear().toString();
+    const yearCols = [...container.children];
 
-  // Try to find current year first
-  let target = yearCols.find(col => col.firstChild.innerText === currentYear);
+    // Try to find current year first
+    let target = yearCols.find(col => col.firstChild && col.firstChild.innerText === currentYear);
 
-  // If not found, pick the latest year
-  if (!target && yearCols.length > 0) {
-    target = yearCols[yearCols.length - 1];
-  }
+    // If not found, pick the latest year
+    if (!target && yearCols.length > 0) {
+      target = yearCols[yearCols.length - 1];
+    }
 
-  if (target) {
-    target.scrollIntoView({ behavior: "auto", inline: "start" });
-  }
+    if (target) {
+      // use 'auto' to avoid interfering with user perception on initial load
+      target.scrollIntoView({ behavior: "auto", inline: "start" });
+    }
+  });
 }
 
 function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
 function createNoCover(){const div=document.createElement("div");div.className="no-cover";div.innerText="Album not on Spotify";return div;}
 function scrollToDecade(decadePrefix){
   const container=document.getElementById("yearsContainer");
-  const target=[...container.children].find(col=>col.firstChild.innerText.startsWith(decadePrefix));
+  const target=[...container.children].find(col=>col.firstChild && col.firstChild.innerText.startsWith(decadePrefix));
   if(target)target.scrollIntoView({behavior:"smooth",inline:"start"});
 }
 
@@ -745,6 +749,8 @@ async function fetchSpotifyProfile() {
 
 
 // ====== SPOTIFY WEB PLAYBACK SDK ======
+/* Keep this global defined BEFORE the SDK script executes.
+   spotify-player.js will call this when it loads. */
 window.onSpotifyWebPlaybackSDKReady = () => { initPlayerIfPossible(); };
 
 function initPlayerIfPossible(){
@@ -769,17 +775,17 @@ function initPlayerIfPossible(){
   });
 
   // Use single, top-level updateBarFromState
-player.addListener('player_state_changed', state => { 
-  if (!state) return; 
-  updateBarFromState(state); 
+  player.addListener('player_state_changed', state => {
+    if (!state) return;
+    updateBarFromState(state);
 
-  // Start or stop the automatic progress updater
-  if (state.paused) stopProgressUpdater();
-  else startProgressUpdater();
+    // Start or stop the automatic progress updater
+    if (state.paused) stopProgressUpdater();
+    else startProgressUpdater();
 
-  document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️"; 
-});
-  
+    document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️";
+  });
+
   player.connect();
 }
 
@@ -961,16 +967,10 @@ window.onload = async () => {
   await fetchAlbums(); // load albums independently of login
 };
 
-  
 </script>
+
+<!-- Move Spotify SDK load to AFTER the main script so the global callback exists when the SDK runs -->
+<script src="https://sdk.scdn.co/spotify-player.js"></script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
