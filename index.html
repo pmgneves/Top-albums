@@ -455,7 +455,7 @@
 <!-- Bottom Player Bar -->
 <div class="player-bar">
   <div class="track-info" id="barInfo">
-<img id="barCover" src="" alt="Album Cover" onerror="this.style.display='none'" />
+<img id="barCover" src="" alt="Album Cover" style="display:block;" onerror="this.style.display='none'" />
     <div class="track-text">
       <div id="barTrack" class="track-name">—</div>
       <div id="barArtist" class="track-artist">—</div>
@@ -711,7 +711,14 @@ function updateBarFromState(state){
   if (!current) return;
 
   const cover = current.album.images?.[0]?.url || "";
-  document.getElementById("barCover").src = cover;
+const barCover = document.getElementById("barCover");
+if (cover) {
+    barCover.src = cover;
+    barCover.style.display = "block"; // make sure it shows
+} else {
+    barCover.removeAttribute("src");
+    barCover.style.display = "none"; // hide if no cover
+}
   document.getElementById("barTrack").textContent = current.name || "—";
   document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
 
@@ -890,6 +897,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
