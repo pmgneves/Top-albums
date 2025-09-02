@@ -416,7 +416,7 @@
 </head>
 <body>
 <header>
-  Top Albums by Year
+  <div class="site-title">Top Albums by Year</div>
   <button class="decade-btn" onclick="scrollToDecade('199')">1990s</button>
   <button class="decade-btn" onclick="scrollToDecade('200')">2000s</button>
   <button class="decade-btn" onclick="scrollToDecade('201')">2010s</button>
@@ -457,8 +457,8 @@
   <div class="track-info" id="barInfo">
 <img id="barCover" src="" alt="Album Cover" style="display:block;" onerror="this.style.display='none'" />
     <div class="track-text">
-      <div id="barTrack" class="track-name">—</div>
-      <div id="barArtist" class="track-artist">—</div>
+      <div id="barTrack" class="track-name"></div>
+      <div id="barArtist" class="track-artist"></div>
     </div>
   </div>
 
@@ -897,6 +897,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
