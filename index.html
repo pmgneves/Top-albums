@@ -19,7 +19,7 @@
     header {
       position: fixed;
       top: 0;
-      left: 0;
+      : 0;
       right: 0;
       height: 50px;
       background: #111;
@@ -502,15 +502,16 @@
   }
 
   /* --- Bottom player bar adjustments --- */
-  .player-bar {
-    width: calc(100% - 40px); /* leave extra 10px margin for spacing */
-    left: 30px; /* push right by the rank column width */
-    transform: none; /* remove translateX for proper left alignment */
-    max-width: none; /* allow full width minus rank column */
-    height: 60px;         /* reduce height on mobile */
-    border-radius: 8px 8px 0 0; /* rounded top corners only */
-    padding: 0 8px;       /* reduce side padding */
-  }
+.player-bar {
+  left: 30px;            /* start after rank column */
+  right: 0;              /* stretch fully to the right edge */
+  width: auto;           /* let left + right define the width (no calc needed) */
+  transform: none;       /* remove centering transform */
+  max-width: none;       /* allow full width on mobile */  
+  height: 60px;          /* reduce height for smaller screens */
+  border-radius: 8px 8px 0 0; /* rounded top corners only */
+  padding: 0 8px;        /* reduce horizontal padding */
+}
 
   .controls {
     gap: 8px;             /* reduce gap between control buttons */
@@ -1024,6 +1025,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
