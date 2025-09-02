@@ -412,6 +412,133 @@
       text-align: center;
     }
 
+ /* ----------------------------------------------- Section for small screens (Mobile) ------------------------------------------ */
+
+    @media (max-width: 600px) {
+  /* --- Header adjustments --- */
+  header {
+    flex-wrap: wrap;        /* allow header items to wrap to next line on small screens */
+    height: auto;           /* height adapts if items wrap */
+    padding: 8px 12px;      /* reduce padding for smaller screens */
+  }
+
+  .site-title {
+    flex: 1 1 100%;         /* allow title to take full width if needed */
+    max-width: 100%;        /* ensure title doesn't exceed container width */
+    font-size: clamp(16px, 4vw, 20px); /* responsive font size between 16px and 20px */
+    white-space: nowrap;    /* prevent wrapping */
+    overflow: hidden;       /* hide overflowed text */
+    text-overflow: ellipsis;/* show "..." when text overflows */
+  }
+
+  .decade-btn {
+    flex: 1 1 auto;         /* buttons shrink evenly to fit available space */
+    font-size: 12px;        /* smaller font for mobile */
+    padding: 4px 6px;       /* smaller padding for compact layout */
+    margin: 2px 0;          /* vertical spacing between wrapped buttons */
+  }
+
+  .login-btn {
+    flex: 1 1 auto;         /* allow login button to shrink if needed */
+    font-size: 12px;        /* smaller font size for mobile */
+    padding: 4px 6px;       /* smaller padding */
+  }
+
+  .spacer { display: none; } /* remove spacer on small screens to save space */
+
+  /* --- Main container adjustments --- */
+  .main-container {
+    display: flex;          /* maintain horizontal layout for rank + years */
+    flex-direction: row;    /* ensure row direction */
+    overflow-x: auto;       /* allow horizontal scrolling if content overflows */
+    margin-top: calc(50px + 8px); /* leave space for header height */
+  }
+
+  /* --- Rank column adjustments --- */
+  .rank-column {
+    position: fixed;                  /* keep rank column fixed on left */
+    left: 0;                          /* stick to left edge */
+    top: calc(50px + 8px);            /* position below header */
+    width: 30px;                       /* keep narrow column width */
+    height: calc(100vh - 50px - 8px - 72px); /* full height minus header + player bar */
+    overflow-y: auto;                  /* allow vertical scroll of rank numbers */
+    z-index: 50;                       /* stay above albums */
+  }
+
+  /* --- Years container adjustments --- */
+  .years-container {
+    flex: 1 1 auto;       /* container grows to fill remaining horizontal space */
+    display: flex;        /* flex layout for year columns */
+    overflow-x: auto;     /* allow horizontal scroll on small screens */
+    padding-left: 40px;   /* leave space for rank column */
+    gap: 12px;            /* smaller gap between year columns */
+  }
+
+  .year-column {
+    flex: 0 0 140px;      /* set fixed width for year column */
+    min-width: 120px;     /* prevent columns from shrinking too much */
+  }
+
+  .year-title {
+    font-size: 14px;      /* smaller font size for mobile */
+    padding: 6px 4px;     /* reduce padding */
+  }
+
+  /* --- Album adjustments --- */
+  .album img,
+  .album .no-cover {
+    height: 140px;        /* reduce album image height for mobile */
+  }
+
+  .album-info {
+    font-size: 12px;      /* smaller text for album info */
+    height: 60px;         /* reduce height to fit smaller screens */
+  }
+
+  /* --- Modal adjustments --- */
+  .modal {
+    width: 95%;           /* almost full width on mobile */
+    max-width: 480px;     /* limit maximum width */
+  }
+
+  /* --- Bottom player bar adjustments --- */
+  .player-bar {
+    width: 95%;           /* almost full width */
+    max-width: 100%;      /* no wider than screen */
+    left: 50%;            /* center horizontally */
+    transform: translateX(-50%); /* perfect horizontal centering */
+    height: 60px;         /* reduce height on mobile */
+    border-radius: 8px 8px 0 0; /* rounded top corners only */
+    padding: 0 8px;       /* reduce side padding */
+  }
+
+  .controls {
+    gap: 8px;             /* reduce gap between control buttons */
+  }
+
+  .ctrl-btn {
+    width: 32px;          /* smaller circular buttons */
+    height: 32px;         /* smaller circular buttons */
+    font-size: 14px;      /* smaller icons/text */
+  }
+
+  .track-info img {
+    width: 40px;          /* smaller album cover in player bar */
+    height: 40px;         /* maintain square aspect ratio */
+  }
+
+  .track-name { font-size: 12px; } /* smaller track name text */
+  .track-artist { font-size: 10px; } /* smaller artist name text */
+
+  #progressBar { height: 3px; } /* thinner progress bar */
+  #progressBar::-webkit-slider-thumb,
+  #progressBar::-moz-range-thumb {
+    width: 10px;  /* smaller slider thumb */
+    height: 10px; /* smaller slider thumb */
+  }
+}
+ /* ----------------------------------------------- End of Section for small screens (Mobile) ------------------------------------------ */
+
   </style>
 </head>
 <body>
@@ -897,6 +1024,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
