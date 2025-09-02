@@ -33,6 +33,18 @@
       gap: 15px;
       border-bottom: 2px solid #222;
     }
+    .site-title {
+                       margin: 0;
+                       font-weight: 30;
+                       line-height: 1;
+                       /* prevent header text from wrapping into multiple lines and overlapping content */
+                       white-space: nowrap;
+                       overflow: hidden;
+                       text-overflow: ellipsis;
+                       max-width: 55%; /* keeps buttons on the right visible; adjust if needed */
+                       font-size: clamp(14px, 3.2vw, 20px); 
+    }
+
     .spacer { flex: 1; }
     .login-btn {
       background: #1DB954;
@@ -43,6 +55,9 @@
       border-radius: 4px;
       font-size: 14px;
       font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .decade-btn {
       background: #222;
@@ -877,4 +892,5 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
