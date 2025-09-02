@@ -467,21 +467,23 @@
 
   /* --- Years container adjustments --- */
   .years-container {
-    flex: 1 1 auto;       /* container grows to fill remaining horizontal space */
-    display: flex;        /* flex layout for year columns */
-    overflow-x: auto;     /* allow horizontal scroll on small screens */
-    padding-left: 40px;   /* leave space for rank column */
-    gap: 12px;            /* smaller gap between year columns */
-  }
-
-  .year-column {
-    flex: 0 0 140px;      /* set fixed width for year column */
-    min-width: 120px;     /* prevent columns from shrinking too much */
+    flex: 1 1 auto;
+    display: flex;
+    overflow-x: auto;     /* already correct */
+    overflow-y: visible;  /* NEW: allows sticky to work */
+    padding-left: 40px;
+    gap: 12px;
   }
 
   .year-title {
-    font-size: 14px;      /* smaller font size for mobile */
-    padding: 6px 4px;     /* reduce padding */
+    position: sticky;     /* NEW: ensure stickiness applies on mobile */
+    top: calc(50px + 8px);/* account for taller header on mobile */
+    background: #111;
+    z-index: 10;
+  }
+  .year-column {
+    flex: 0 0 140px;      /* set fixed width for year column */
+    min-width: 120px;     /* prevent columns from shrinking too much */
   }
 
   /* --- Album adjustments --- */
@@ -1025,6 +1027,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
