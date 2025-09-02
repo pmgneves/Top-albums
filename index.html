@@ -503,10 +503,10 @@
 
   /* --- Bottom player bar adjustments --- */
   .player-bar {
-    width: 95%;           /* almost full width */
-    max-width: 100%;      /* no wider than screen */
-    left: 50%;            /* center horizontally */
-    transform: translateX(-50%); /* perfect horizontal centering */
+    width: calc(100% - 40px); /* leave extra 10px margin for spacing */
+    left: 30px; /* push right by the rank column width */
+    transform: none; /* remove translateX for proper left alignment */
+    max-width: none; /* allow full width minus rank column */
     height: 60px;         /* reduce height on mobile */
     border-radius: 8px 8px 0 0; /* rounded top corners only */
     padding: 0 8px;       /* reduce side padding */
@@ -1024,6 +1024,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
