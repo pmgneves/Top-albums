@@ -414,7 +414,7 @@
 
  /* ----------------------------------------------- Section for small screens (Mobile) ------------------------------------------ */
 
- @media (max-width: 600px) {
+@media (max-width: 600px) {
   /* --- Header adjustments --- */
   header {
     left: 0; 
@@ -538,13 +538,43 @@
   .track-name { font-size: 12px; } /* smaller track name text */
   .track-artist { font-size: 10px; } /* smaller artist name text */
 
-  #progressBar { height: 3px; } /* thinner progress bar */
+  /* --- Mobile progress bar adjustments --- */
+  .progress-container {
+    display: flex;            /* align items horizontally */
+    align-items: center;      /* vertical alignment */
+    gap: 6px;                 /* spacing between currentTime, bar, totalTime */
+    width: calc(100% - 16px); /* leave 8px padding on each side inside player-bar */
+    max-width: 100%;          /* prevent overflow */
+  }
+
+  #progressBar {
+    flex: 1;                  /* fill available space in container */
+    -webkit-appearance: none; /* remove default styling */
+    height: 3px;              /* thinner progress bar on mobile */
+    background: #535353;
+    border-radius: 2px;
+    cursor: pointer;
+    width: 100%;              /* fill container exactly */
+  }
+
   #progressBar::-webkit-slider-thumb,
   #progressBar::-moz-range-thumb {
-    width: 10px;  /* smaller slider thumb */
-    height: 10px; /* smaller slider thumb */
+    width: 10px;  /* smaller slider thumb for mobile */
+    height: 10px; /* smaller slider thumb for mobile */
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 2px rgba(0,0,0,0.8);
+  }
+
+  #currentTime, #totalTime {
+    font-size: 10px;          /* keep small on mobile */
+    color: #ccc;
+    width: 28px;
+    text-align: center;
   }
 }
+
  /* ----------------------------------------------- End of Section for small screens (Mobile) ------------------------------------------ */
 
   </style>
@@ -1032,6 +1062,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
