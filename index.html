@@ -298,7 +298,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 12px;
-      z-index: 150;
+      z-index: 40;
       border-top: 1px solid #333;
       border-radius: 12px 12px 0 0;
       box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
@@ -398,102 +398,6 @@
       color: #ccc;
       width: 28px;
       text-align: center;
-    }
-
-    /* =================== MOBILE / SMALL SCREEN FIXES =================== */
-    @media (max-width: 768px) {
-      /* Header stays on top */
-      header {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        padding: 0 10px;
-        font-size: 18px;
-      }
-      /* Rank column fixed on left */
-      .rank-column {
-        position: fixed;
-        top: 50px; /* below header */
-        left: 0;
-        width: 40px;
-        height: calc(100vh - 50px - 72px); /* full height minus header & player */
-        overflow-y: auto;
-        overflow-x: hidden;
-        z-index: 900;
-      }
-
-      /* Year line stays on top inside each column */
-      .year-title {
-        top: 0; /* inside column */
-        font-size: 14px;
-        padding: 4px 2px;
-      }
-
-      /* Adjust main content to avoid overlapping fixed elements */
-      .years-container {
-        padding-left: 50px; /* space for rank column */
-        padding-top: 60px;  /* space for header */
-        padding-bottom: 80px; /* space for bottom player */
-        gap: 10px;
-      }
-
-      .year-column {
-        width: 140px;
-      }
-
-      .albums-wrapper {
-        margin-top: 8px;
-        padding-top: 0;
-      }
-
-      /* Bottom player bar fixed & full width */
-      .player-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        transform: none;
-        width: 100%;
-        max-width: 100%;
-        height: 72px;
-        padding: 0 10px;
-        border-radius: 0;
-        z-index: 1000;
-      }
-
-      /* Make control buttons bigger for touch */
-      .ctrl-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-      }
-
-      .progress-container {
-        width: 180px;
-        gap: 4px;
-      }
-
-      #progressBar {
-        height: 6px;
-      }
-
-      #currentTime, #totalTime {
-        font-size: 12px;
-        width: 32px;
-      }
-
-      /* Make album covers responsive */
-      .album img,
-      .album .no-cover {
-        height: 140px;
-      }
-
-      .track-info img {
-        width: 40px;
-        height: 40px;
-      }
-
-      .track-name { font-size: 12px; }
-      .track-artist { font-size: 10px; }
     }
 
   </style>
