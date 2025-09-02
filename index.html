@@ -8,7 +8,6 @@
   />
   <link rel="icon" type="image/png" href="music-icon-192x192.png">
   <style>
-    /* (your original CSS left unchanged) */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -456,7 +455,7 @@
 <!-- Bottom Player Bar -->
 <div class="player-bar">
   <div class="track-info" id="barInfo">
-    <img id="barCover" src="" alt="Album Cover" />
+<img id="barCover" src="" alt="Album Cover" onerror="this.style.display='none'" />
     <div class="track-text">
       <div id="barTrack" class="track-name">—</div>
       <div id="barArtist" class="track-artist">—</div>
@@ -891,6 +890,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
