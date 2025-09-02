@@ -674,8 +674,26 @@ function renderAlbums() {
     container.appendChild(yearCol);
   });
 
-  requestAnimationFrame(syncRankMetrics);
+    requestAnimationFrame(syncRankMetrics);
+
+  // ===== Scroll to current year or latest available =====
+  const currentYear = new Date().getFullYear().toString();
+  const container = document.getElementById("yearsContainer");
+  const yearCols = [...container.children];
+
+  // Try to find current year first
+  let target = yearCols.find(col => col.firstChild.innerText === currentYear);
+
+  // If not found, pick the latest year
+  if (!target && yearCols.length > 0) {
+    target = yearCols[yearCols.length - 1];
+  }
+
+  if (target) {
+    target.scrollIntoView({ behavior: "auto", inline: "start" });
+  }
 }
+
 
 function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
 function createNoCover(){const div=document.createElement("div");div.className="no-cover";div.innerText="Album not on Spotify";return div;}
@@ -948,6 +966,7 @@ window.onload = async () => {
 </script>
 </body>
 </html>
+
 
 
 
