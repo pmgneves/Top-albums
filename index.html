@@ -414,9 +414,11 @@
 
  /* ----------------------------------------------- Section for small screens (Mobile) ------------------------------------------ */
 
-    @media (max-width: 600px) {
+ @media (max-width: 600px) {
   /* --- Header adjustments --- */
   header {
+    left: 0; 
+    right: 0;
     flex-wrap: wrap;        /* allow header items to wrap to next line on small screens */
     height: auto;           /* height adapts if items wrap */
     padding: 8px 12px;      /* reduce padding for smaller screens */
@@ -450,7 +452,7 @@
   .main-container {
     display: flex;          /* maintain horizontal layout for rank + years */
     flex-direction: row;    /* ensure row direction */
-    overflow-x: auto;       /* allow horizontal scrolling if content overflows */
+    overflow: visible; /* was: overflow-x: auto; */
     margin-top: calc(50px + 8px); /* leave space for header height */
   }
 
@@ -473,14 +475,17 @@
     overflow-y: visible;  /* NEW: allows sticky to work */
     padding-left: 40px;
     gap: 12px;
+    position: relative;
   }
 
   .year-title {
-    position: sticky;     /* NEW: ensure stickiness applies on mobile */
-    top: calc(50px + 8px);/* account for taller header on mobile */
-    background: #111;
-    z-index: 10;
+    position: -webkit-sticky; /* Safari/iOS */
+    position: sticky;         /* ensure stickiness applies on mobile */
+    top: calc(50px + 8px);    /* matches your mobile header offset */
+    z-index: 12;
+    background: #111;          /* avoids translucent overlap while sticking */
   }
+
   .year-column {
     flex: 0 0 140px;      /* set fixed width for year column */
     min-width: 120px;     /* prevent columns from shrinking too much */
@@ -504,16 +509,16 @@
   }
 
   /* --- Bottom player bar adjustments --- */
-.player-bar {
-  left: 30px;            /* start after rank column */
-  right: 0;              /* stretch fully to the right edge */
-  width: auto;           /* let left + right define the width (no calc needed) */
-  transform: none;       /* remove centering transform */
-  max-width: none;       /* allow full width on mobile */  
-  height: 60px;          /* reduce height for smaller screens */
-  border-radius: 8px 8px 0 0; /* rounded top corners only */
-  padding: 0 8px;        /* reduce horizontal padding */
-}
+  .player-bar {
+    left: 30px;            /* start after rank column */
+    right: 0;              /* stretch fully to the right edge */
+    width: auto;           /* let left + right define the width (no calc needed) */
+    transform: none;       /* remove centering transform */
+    max-width: none;       /* allow full width on mobile */  
+    height: 60px;          /* reduce height for smaller screens */
+    border-radius: 8px 8px 0 0; /* rounded top corners only */
+    padding: 0 8px;        /* reduce horizontal padding */
+  }
 
   .controls {
     gap: 8px;             /* reduce gap between control buttons */
@@ -1027,6 +1032,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
