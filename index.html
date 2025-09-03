@@ -470,6 +470,9 @@
   .years-container {
     flex: 1 1 auto;
     display: flex;
+    overflow-x: auto;     /* already correct */
+    overflow-y: visible;  /* NEW: allows sticky to work */
+    padding-left: 40px;
     gap: 12px;
     position: relative;
   }
