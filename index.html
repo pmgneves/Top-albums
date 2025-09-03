@@ -471,9 +471,8 @@
     flex: 1 1 auto;
     display: flex;
     overflow-x: auto;     /* already correct */
-    overflow-y: visible;  /* NEW: allows sticky to work */
     padding-left: 40px;
-    gap: 12px;
+    gap: 20px;
     position: relative;
   }
 
@@ -488,7 +487,10 @@
   .year-column {
     flex: 0 0 140px;      /* set fixed width for year column */
     min-width: 120px;     /* prevent columns from shrinking too much */
+            display: flex;
   }
+          flex-direction: column;
+		  }
 
   /* --- Album adjustments --- */
   .album img,
