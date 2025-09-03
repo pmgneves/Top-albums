@@ -452,109 +452,130 @@
   .main-container {
     display: flex;          /* maintain horizontal layout for rank + years */
     flex-direction: row;    /* ensure row direction */
-    overflow: visible; /* was: overflow-x: auto; */
+    overflow-x: auto;       /* horizontal scroll for albums and years */
     margin-top: calc(50px + 8px); /* leave space for header height */
   }
 
   /* --- Rank column adjustments --- */
   .rank-column {
-    position: fixed;                  /* keep rank column fixed on left */
-    left: 0;                          /* stick to left edge */
-    top: calc(50px + 8px);            /* position below header */
-    width: 30px;                       /* keep narrow column width */
-    height: calc(100vh - 50px - 8px - 72px); /* full height minus header + player bar */
-    overflow-y: auto;                  /* allow vertical scroll of rank numbers */
-    z-index: 50;                       /* stay above albums */
+    position: absolute;       /* removed independent fixed scroll */
+    left: 0;                  /* stick to left edge */
+    top: 0;                   /* aligns with albums-wrapper */
+    width: 30px;              /* narrow column */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 50;              /* stay above albums */
+  }
+
+  #rankScroller {
+    display: grid;
+    grid-auto-rows: var(--row-h, 252px);
+    padding-top: var(--rows-offset,0px); /* sync with albums */
+  }
+
+  .rank-number {
+    height: var(--row-h, 252px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #ffffff;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+    z-index: 5;
   }
 
   /* --- Years container adjustments --- */
   .years-container {
     flex: 1 1 auto;
     display: flex;
-    overflow-x: auto;     /* already correct */
-    overflow-y: visible;  /* NEW: allows sticky to work */
+    overflow-x: auto;         /* horizontal scroll for years */
+    overflow-y: visible;      /* allows sticky to work */
     padding-left: 40px;
     gap: 12px;
     position: relative;
+    padding-top: 70px;        /* offset for mobile header height */
   }
 
   .year-title {
     position: -webkit-sticky; /* Safari/iOS */
     position: sticky;         /* ensure stickiness applies on mobile */
-    top: calc(50px + 8px);    /* matches your mobile header offset */
-    z-index: 12;
-    background: #111;          /* avoids translucent overlap while sticking */
+    top: 70px;                /* matches mobile header height */
+    z-index: 12;              /* above albums, below header */
+    background: #111;         /* avoids translucent overlap while sticking */
   }
 
   .year-column {
-    flex: 0 0 140px;      /* set fixed width for year column */
-    min-width: 120px;     /* prevent columns from shrinking too much */
+    flex: 0 0 140px;          /* fixed width for year column */
+    min-width: 120px;         /* prevent columns from shrinking too much */
   }
 
   /* --- Album adjustments --- */
   .album img,
   .album .no-cover {
-    height: 140px;        /* reduce album image height for mobile */
+    height: 140px;            /* reduce album image height for mobile */
   }
 
   .album-info {
-    font-size: 12px;      /* smaller text for album info */
-    height: 60px;         /* reduce height to fit smaller screens */
+    font-size: 12px;          /* smaller text for album info */
+    height: 60px;             /* reduce height to fit smaller screens */
   }
 
   /* --- Modal adjustments --- */
   .modal {
-    width: 95%;           /* almost full width on mobile */
-    max-width: 480px;     /* limit maximum width */
+    width: 95%;               /* almost full width on mobile */
+    max-width: 480px;         /* limit maximum width */
   }
 
   /* --- Bottom player bar adjustments --- */
   .player-bar {
-    left: 30px;            /* start after rank column */
-    right: 0;              /* stretch fully to the right edge */
-    width: auto;           /* let left + right define the width (no calc needed) */
-    transform: none;       /* remove centering transform */
-    max-width: none;       /* allow full width on mobile */  
-    height: 60px;          /* reduce height for smaller screens */
+    left: 30px;               /* start after rank column */
+    right: 0;                 /* stretch fully to the right edge */
+    width: auto;              /* let left + right define the width */
+    transform: none;          /* remove centering transform */
+    max-width: none;          /* allow full width on mobile */  
+    height: 60px;             /* reduce height for smaller screens */
     border-radius: 8px 8px 0 0; /* rounded top corners only */
-    padding: 0 8px;        /* reduce horizontal padding */
+    padding: 0 8px;           /* reduce horizontal padding */
   }
 
   .controls {
-    gap: 8px;             /* reduce gap between control buttons */
+    gap: 8px;                 /* reduce gap between control buttons */
   }
 
   .ctrl-btn {
-    width: 32px;          /* smaller circular buttons */
-    height: 32px;         /* smaller circular buttons */
-    font-size: 14px;      /* smaller icons/text */
+    width: 32px;              /* smaller circular buttons */
+    height: 32px;             /* smaller circular buttons */
+    font-size: 14px;          /* smaller icons/text */
   }
 
   .track-info img {
-    width: 40px;          /* smaller album cover in player bar */
-    height: 40px;         /* maintain square aspect ratio */
+    width: 40px;              /* smaller album cover in player bar */
+    height: 40px;             /* maintain square aspect ratio */
   }
 
-  .track-name { font-size: 12px; } /* smaller track name text */
-  .track-artist { font-size: 10px; } /* smaller artist name text */
+  .track-name { font-size: 12px; }  /* smaller track name text */
+  .track-artist { font-size: 10px; }/* smaller artist name text */
 
   /* --- Mobile progress bar adjustments --- */
   .progress-container {
-    display: flex;            /* align items horizontally */
-    align-items: center;      /* vertical alignment */
-    gap: 6px;                 /* spacing between currentTime, bar, totalTime */
-    width: calc(100% - 16px); /* leave 8px padding on each side inside player-bar */
-    max-width: 100%;          /* prevent overflow */
+    display: flex;             /* align items horizontally */
+    align-items: center;       /* vertical alignment */
+    gap: 6px;                  /* spacing between currentTime, bar, totalTime */
+    width: calc(100% - 16px);  /* leave 8px padding on each side inside player-bar */
+    max-width: 100%;           /* prevent overflow */
   }
 
   #progressBar {
-    flex: 1;                  /* fill available space in container */
-    -webkit-appearance: none; /* remove default styling */
-    height: 3px;              /* thinner progress bar on mobile */
+    flex: 1;                   /* fill available space in container */
+    -webkit-appearance: none;  /* remove default styling */
+    height: 3px;               /* thinner progress bar on mobile */
     background: #535353;
     border-radius: 2px;
     cursor: pointer;
-    width: 100%;              /* fill container exactly */
+    width: 100%;               /* fill container exactly */
   }
 
   #progressBar::-webkit-slider-thumb,
@@ -568,7 +589,7 @@
   }
 
   #currentTime, #totalTime {
-    font-size: 10px;          /* keep small on mobile */
+    font-size: 10px;           /* keep small on mobile */
     color: #ccc;
     width: 28px;
     text-align: center;
@@ -1062,6 +1083,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
