@@ -452,43 +452,27 @@
   .main-container {
     display: flex;          /* maintain horizontal layout for rank + years */
     flex-direction: row;    /* ensure row direction */
-    overflow-x: auto;       /* scroll everything together horizontally */
+    overflow: visible; /* was: overflow-x: auto; */
     margin-top: calc(50px + 8px); /* leave space for header height */
   }
 
-  /* --- Rank column adjustments (scrolls with albums) --- */
+  /* --- Rank column adjustments --- */
   .rank-column {
-    position: relative;     /* relative so it scrolls with albums */
-    width: 30px;            /* keep narrow column width */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  #rankScroller {
-    display: grid;
-    grid-auto-rows: var(--row-h, 140px); /* match album height on mobile */
-  }
-
-  .rank-number {
-    height: var(--row-h, 140px); /* same as album height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: #ffffff;
-    box-sizing: border-box;
-    width: 100%;
-    position: relative;
-    z-index: 5;
+    position: fixed;                  /* keep rank column fixed on left */
+    left: 0;                          /* stick to left edge */
+    top: calc(50px + 8px);            /* position below header */
+    width: 30px;                       /* keep narrow column width */
+    height: calc(100vh - 50px - 8px - 72px); /* full height minus header + player bar */
+    overflow-y: auto;                  /* allow vertical scroll of rank numbers */
+    z-index: 50;                       /* stay above albums */
   }
 
   /* --- Years container adjustments --- */
   .years-container {
     flex: 1 1 auto;
     display: flex;
-    overflow-x: auto;     /* horizontal scroll */
-    overflow-y: visible;  /* allow sticky to work */
+    overflow-x: auto;     /* already correct */
+    overflow-y: visible;  /* NEW: allows sticky to work */
     padding-left: 40px;
     gap: 12px;
     position: relative;
@@ -508,11 +492,6 @@
   }
 
   /* --- Album adjustments --- */
-  .albums-wrapper {
-    display: flex;
-    gap: 12px;
-  }
-
   .album img,
   .album .no-cover {
     height: 140px;        /* reduce album image height for mobile */
@@ -533,7 +512,7 @@
   .player-bar {
     left: 30px;            /* start after rank column */
     right: 0;              /* stretch fully to the right edge */
-    width: auto;           /* let left + right define the width */
+    width: auto;           /* let left + right define the width (no calc needed) */
     transform: none;       /* remove centering transform */
     max-width: none;       /* allow full width on mobile */  
     height: 60px;          /* reduce height for smaller screens */
@@ -1083,8 +1062,6 @@ window.onload = async () => {
 
 </body>
 </html>
-
-
 
 
 
