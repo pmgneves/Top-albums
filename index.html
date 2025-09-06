@@ -814,19 +814,32 @@ async function handleAuthRedirect(){
   }
 }
 async function fetchSpotifyProfile() {
-  if (!token) return;
+  if (!token) return null;
   try {
     const resp = await fetch("https://api.spotify.com/v1/me", {
-      headers: { "Authorization": `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
+
+    if (!resp.ok) throw new Error("Spotify API request failed");
+
     const data = await resp.json();
-    spotifyUsername = data.display_name || data.id || "Unknown";
-    loginBtn.textContent = `Logged in as ${spotifyUsername}`;
+
+    if (data.display_name || data.id) {
+      spotifyUsername = data.display_name || data.id;
+      loginBtn.textContent = `Logged in as ${spotifyUsername}`;
+      return data; // return full profile for reuse
+    } else {
+      // No valid username → fallback
+      loginBtn.textContent = "Click to login to Spotify";
+      return null;
+    }
   } catch (e) {
     console.error("Failed to fetch Spotify profile:", e);
-    loginBtn.textContent = "Log in with Spotify";
+    loginBtn.textContent = "Click to login to Spotify";
+    return null;
   }
 }
+
 
 
 // ====== SPOTIFY WEB PLAYBACK SDK ======
@@ -1043,14 +1056,18 @@ async function transferPlaybackToDevice(){
 window.onload = async () => {
   await handleAuthRedirect(); // only handles redirect after Spotify login
 
-  // Check if already logged in
-  const storedToken = localStorage.getItem("spotify_access_token");
-  if (storedToken) {
-    token = storedToken;
-    await fetchSpotifyProfile(); // updates button text to "Logged in as ..."
-  } else {
-    loginBtn.textContent = "Please log in to Spotify"; // show prompt instead of auto popup
+// Check if already logged in
+const storedToken = localStorage.getItem("spotify_access_token");
+if (storedToken) {
+  token = storedToken;
+  const profile = await fetchSpotifyProfile();
+  if (!profile) {
+    // Token exists but profile fetch failed
+    loginBtn.textContent = "Click to login to Spotify";
   }
+} else {
+  loginBtn.textContent = "Click to login to Spotify";
+}
 
   await fetchAlbums(); // load albums independently of login
 };
@@ -1062,6 +1079,7 @@ window.onload = async () => {
 
 </body>
 </html>
+
 
 
 
