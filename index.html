@@ -823,22 +823,36 @@ async function fetchSpotifyProfile() {
     if (!resp.ok) throw new Error("Spotify API request failed");
 
     const data = await resp.json();
-
-    if (data.display_name || data.id) {
-      spotifyUsername = data.display_name || data.id;
-      loginBtn.textContent = `Logged in as ${spotifyUsername}`;
-      return data; // return full profile for reuse
-    } else {
-      // No valid username → fallback
-      loginBtn.textContent = "Click to login to Spotify";
-      return null;
-    }
+    updateLoginButton(data);   // 🟢 NEW: use update function
+    return data;
   } catch (e) {
     console.error("Failed to fetch Spotify profile:", e);
-    loginBtn.textContent = "Click to login to Spotify";
+    updateLoginButton(null);   // 🟢 NEW: reset on error
     return null;
   }
 }
+// 🟢 NEW: Track login state
+let isLoggedIn = false;
+
+// Update button state (login/logout)
+function updateLoginButton(user) {
+  if (user && (user.display_name || user.id)) {
+    isLoggedIn = true;
+    loginBtn.textContent = `Logged in as ${user.display_name || user.id} (Logout)`;
+  } else {
+    isLoggedIn = false;
+    loginBtn.textContent = "Click to login to Spotify";
+  }
+}
+
+// Logout function
+function logoutSpotify() {
+  localStorage.removeItem("spotify_access_token");
+  token = null;
+  spotifyUsername = null;
+  updateLoginButton(null);
+}
+
 
 
 
@@ -1079,6 +1093,7 @@ if (storedToken) {
 
 </body>
 </html>
+
 
 
 
