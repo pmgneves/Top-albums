@@ -1336,32 +1336,32 @@
         await fetchAlbums(); // load albums independently of login
       };
       /* ===================== NEW FILTER BUTTONS (UPGRADED) ===================== */
-      // 1️⃣ Create the filter buttons
-      const header = document.querySelector("header");
-      const decadeButtons = header.querySelectorAll(".decade-btn");
+   // 1️⃣ Create the filter buttons
+const header = document.querySelector("header");
+const decadeButtons = header.querySelectorAll(".decade-btn");
 
-      const countryBtn = document.createElement("button");
-      countryBtn.id = "countryBtn";
-      countryBtn.className = "filter-btn decade-btn";
-      countryBtn.style.background = "silver";
-      countryBtn.textContent = "Artist's Country";
-      header.insertBefore(
-        countryBtn,
-        decadeButtons[decadeButtons.length - 1].nextSibling
-      );
+const countryBtn = document.createElement("button");
+countryBtn.id = "countryBtn";
+countryBtn.className = "filter-btn decade-btn";
+countryBtn.style.background = "silver";
+countryBtn.textContent = "Artist's Country";
+header.insertBefore(
+  countryBtn,
+  decadeButtons[decadeButtons.length - 1].nextSibling
+);
 
-      const genreBtn = document.createElement("button");
-      genreBtn.id = "genreBtn";
-      genreBtn.className = "filter-btn decade-btn";
-      genreBtn.style.background = "gold";
-      genreBtn.textContent = "Music Genre";
-      header.insertBefore(genreBtn, countryBtn.nextSibling);
+const genreBtn = document.createElement("button");
+genreBtn.id = "genreBtn";
+genreBtn.className = "filter-btn decade-btn";
+genreBtn.style.background = "gold";
+genreBtn.textContent = "Music Genre";
+header.insertBefore(genreBtn, countryBtn.nextSibling);
 
-      // 2️⃣ Filter modal
-      const filterModalBackdrop = document.createElement("div");
-      filterModalBackdrop.id = "filterModalBackdrop";
-      filterModalBackdrop.className = "modal-backdrop";
-      filterModalBackdrop.innerHTML = `
+// 2️⃣ Filter modal
+const filterModalBackdrop = document.createElement("div");
+filterModalBackdrop.id = "filterModalBackdrop";
+filterModalBackdrop.className = "modal-backdrop";
+filterModalBackdrop.innerHTML = `
   <div class="modal">
     <div class="modal-header"><div class="modal-title" id="filterModalTitle"></div></div>
     <div class="filter-list" id="filterList"></div>
@@ -1370,181 +1370,159 @@
     </div>
   </div>
 `;
-      document.body.appendChild(filterModalBackdrop);
+document.body.appendChild(filterModalBackdrop);
 
-      // 2️⃣a Clear filters button
-      const clearFiltersBtn = document.createElement("button");
-      clearFiltersBtn.id = "clearFiltersBtn";
-      clearFiltersBtn.textContent = "✕ Clear Filters";
-      clearFiltersBtn.style.position = "fixed";
-      clearFiltersBtn.style.top = "10px";
-      clearFiltersBtn.style.right = "10px";
-      clearFiltersBtn.style.padding = "8px 12px";
-      clearFiltersBtn.style.background = "red";
-      clearFiltersBtn.style.color = "white";
-      clearFiltersBtn.style.border = "none";
-      clearFiltersBtn.style.borderRadius = "5px";
-      clearFiltersBtn.style.cursor = "pointer";
-      clearFiltersBtn.style.display = "none"; // hidden by default
-      document.body.appendChild(clearFiltersBtn);
+const filterList = document.getElementById("filterList");
+const filterModalTitle = document.getElementById("filterModalTitle");
+const closeFilterModalBtn = document.getElementById("closeFilterModalBtn");
 
-      const filterList = document.getElementById("filterList");
-      const filterModalTitle = document.getElementById("filterModalTitle");
-      const closeFilterModalBtn = document.getElementById(
-        "closeFilterModalBtn"
-      );
+closeFilterModalBtn.addEventListener(
+  "click",
+  () => (filterModalBackdrop.style.display = "none")
+);
 
-      closeFilterModalBtn.addEventListener(
-        "click",
-        () => (filterModalBackdrop.style.display = "none")
-      );
+// 3️⃣ Country code → full name
+const countryNames = {
+  PT: "Portugal",
+  ES: "Spain",
+  FR: "France",
+  DE: "Germany",
+  IT: "Italy",
+  US: "USA",
+  UK: "UK",
+};
 
-      // 3️⃣ Country code → full name
-      const countryNames = {
-        PT: "Portugal",
-        ES: "Spain",
-        FR: "France",
-        DE: "Germany",
-        IT: "Italy",
-        US: "USA",
-        UK: "UK",
-      };
+// 4️⃣ Open filter modal
+function openFilterModal(column) {
+  filterList.innerHTML = "";
+  filterModalTitle.textContent =
+    column === "Country" ? "Select Artist Country" : "Select Music Genre";
 
-      // 4️⃣ Open filter modal
-      function openFilterModal(column) {
-        filterList.innerHTML = "";
-        filterModalTitle.textContent =
-          column === "Country" ? "Select Artist Country" : "Select Music Genre";
+  let values;
 
-        let values;
-
-        if (column === "__GENRES__") {
-          const set = new Set();
-          albumsData.forEach((a) => {
-            ["Genre 1", "Genre 2", "Genre(s)"].forEach((key) => {
-              const raw = a[key];
-              if (!raw) return;
-              String(raw)
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-                .forEach((g) => set.add(g));
-            });
-          });
-          values = Array.from(set).sort((a, b) => a.localeCompare(b));
-        } else {
-          values = [
-            ...new Set(albumsData.map((a) => a[column]).filter((v) => v)),
-          ].sort();
-        }
-
-        values.forEach((val) => {
-          const displayVal =
-            column === "Country" && countryNames[val] ? countryNames[val] : val;
-
-          const btn = document.createElement("button");
-          btn.className = "filter-btn-item";
-          btn.textContent = displayVal;
-          btn.onclick = () => {
-            applyFilter(column, val);
-            filterModalBackdrop.style.display = "none";
-          };
-          filterList.appendChild(btn);
-        });
-
-        filterModalBackdrop.style.display = "flex";
-      }
-
-      // 5️⃣ Apply filter with shadow highlights
-      function applyFilter(column, value) {
-        const albumDivs = document.querySelectorAll(".albums-wrapper .album");
-
-        // Reset all first
-        albumDivs.forEach((div) => {
-          div.classList.remove("highlighted");
-          div.style.transition = "all 0.3s ease";
-          div.style.boxShadow = "";
-          div.style.opacity = "0.3";
-          div.style.borderRadius = "8px";
-          div.style.transform = "scale(1)";
-        });
-
-        const valLower = String(value).toLowerCase();
-
-        albumsData.forEach((album, index) => {
-          let match = false;
-
-          if (column === "__GENRES__") {
-            const allGenres = []
-              .concat(
-                String(album["Genre 1"] || "")
-                  .split(",")
-                  .map((s) => s.trim()),
-                String(album["Genre 2"] || "")
-                  .split(",")
-                  .map((s) => s.trim()),
-                String(album["Genre(s)"] || "")
-                  .split(",")
-                  .map((s) => s.trim())
-              )
-              .filter(Boolean)
-              .map((s) => s.toLowerCase());
-
-            match = allGenres.includes(valLower);
-          } else {
-            match = album[column] === value;
-          }
-
-          if (match) {
-            const div = albumDivs[index];
-            if (div) {
-              div.classList.add("highlighted");
-              div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
-              div.style.opacity = "1";
-              div.style.transform = "scale(1.02)";
-            }
-          }
-        });
-
-        // Show clear button
-        clearFiltersBtn.style.display = "block";
-      }
-
-      // 6️⃣ Clean filters
-      function clearFilter() {
-        const albumDivs = document.querySelectorAll(".albums-wrapper .album");
-        albumDivs.forEach((div) => {
-          div.classList.remove("highlighted");
-          div.style.boxShadow = "";
-          div.style.opacity = "1";
-          div.style.transform = "scale(1)";
-        });
-        clearFiltersBtn.style.display = "none";
-      }
-
-      clearFiltersBtn.addEventListener("click", clearFilter);
-
-      // 7️⃣ Event listeners
-      countryBtn.addEventListener("click", () => openFilterModal("Country"));
-      genreBtn.addEventListener("click", () => openFilterModal("__GENRES__"));
-
-      document.addEventListener("click", (e) => {
-        // If click is inside a highlighted album, do nothing
-        if (e.target.closest(".albums-wrapper .album.highlighted")) return;
-
-        // If click is inside the filter modal or on the filter buttons, do nothing
-        if (
-          e.target.closest("#filterModalBackdrop") ||
-          e.target.closest(".filter-btn")
-        )
-          return;
-
-        // Otherwise, clear highlights
-        clearFilter();
+  if (column === "__GENRES__") {
+    const set = new Set();
+    albumsData.forEach((a) => {
+      ["Genre 1", "Genre 2", "Genre(s)"].forEach((key) => {
+        const raw = a[key];
+        if (!raw) return;
+        String(raw)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .forEach((g) => set.add(g));
       });
+    });
+    values = Array.from(set).sort((a, b) => a.localeCompare(b));
+  } else {
+    values = [
+      ...new Set(albumsData.map((a) => a[column]).filter((v) => v)),
+    ].sort();
+  }
+
+  values.forEach((val) => {
+    const displayVal =
+      column === "Country" && countryNames[val] ? countryNames[val] : val;
+
+    const btn = document.createElement("button");
+    btn.className = "filter-btn-item";
+    btn.textContent = displayVal;
+    btn.onclick = () => {
+      applyFilter(column, val);
+      filterModalBackdrop.style.display = "none";
+    };
+    filterList.appendChild(btn);
+  });
+
+  filterModalBackdrop.style.display = "flex";
+}
+
+// 5️⃣ Apply filter with shadow highlights
+function applyFilter(column, value) {
+  const albumDivs = document.querySelectorAll(".albums-wrapper .album");
+
+  // Reset all first
+  albumDivs.forEach((div) => {
+    div.classList.remove("highlighted");
+    div.style.transition = "all 0.3s ease";
+    div.style.boxShadow = "";
+    div.style.opacity = "0.3";
+    div.style.borderRadius = "8px";
+    div.style.transform = "scale(1)";
+  });
+
+  const valLower = String(value).toLowerCase();
+
+  albumsData.forEach((album, index) => {
+    let match = false;
+
+    if (column === "__GENRES__") {
+      const allGenres = []
+        .concat(
+          String(album["Genre 1"] || "")
+            .split(",")
+            .map((s) => s.trim()),
+          String(album["Genre 2"] || "")
+            .split(",")
+            .map((s) => s.trim()),
+          String(album["Genre(s)"] || "")
+            .split(",")
+            .map((s) => s.trim())
+        )
+        .filter(Boolean)
+        .map((s) => s.toLowerCase());
+
+      match = allGenres.includes(valLower);
+    } else {
+      match = album[column] === value;
+    }
+
+    if (match) {
+      const div = albumDivs[index];
+      if (div) {
+        div.classList.add("highlighted");
+        div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
+        div.style.opacity = "1";
+        div.style.transform = "scale(1.02)";
+      }
+    }
+  });
+}
+
+// 6️⃣ Clean filters
+function clearFilter() {
+  const albumDivs = document.querySelectorAll(".albums-wrapper .album");
+  albumDivs.forEach((div) => {
+    div.classList.remove("highlighted");
+    div.style.boxShadow = "";
+    div.style.opacity = "1";
+    div.style.transform = "scale(1)";
+  });
+}
+
+// 7️⃣ Event listeners
+countryBtn.addEventListener("click", () => openFilterModal("Country"));
+genreBtn.addEventListener("click", () => openFilterModal("__GENRES__"));
+
+document.addEventListener("click", (e) => {
+  // If click is inside a highlighted album, do nothing
+  if (e.target.closest(".albums-wrapper .album.highlighted")) return;
+
+  // If click is inside the filter modal or on the filter buttons, do nothing
+  if (
+    e.target.closest("#filterModalBackdrop") ||
+    e.target.closest(".filter-btn")
+  )
+    return;
+
+  // Otherwise, clear highlights
+  clearFilter();
+});
+
     </script>
 
     <!-- Move Spotify SDK load to AFTER the main script so the global callback exists when the SDK runs -->
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
