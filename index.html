@@ -676,6 +676,16 @@ const tracksList = document.getElementById("tracksList");
 const modalPlayBtn = document.getElementById("modalPlayBtn");
 const loginBtn = document.getElementById("loginBtn");
 
+// Toggle behavior for login/logout
+loginBtn.addEventListener("click", () => {
+  if (isLoggedIn) {
+    logoutSpotify(); // logs out
+  } else {
+    // existing login redirect flow
+    window.location.href = "https://accounts.spotify.com/authorize?...";
+  }
+});
+
 // ====== DOM EVENT LISTENERS ======
 barInfo.addEventListener("click", () => { if (currentAlbumUri) showModal(); });
 playPauseBtn.addEventListener("click", () => { if (player) player.togglePlay(); });
@@ -1093,6 +1103,7 @@ if (storedToken) {
 
 </body>
 </html>
+
 
 
 
