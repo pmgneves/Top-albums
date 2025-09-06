@@ -1,1121 +1,1460 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-  <link rel="icon" type="image/png" href="music-icon-192x192.png">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #111;
-      color: white;
-      overflow-x: auto;
-      overflow-y: auto;
-    }
-    header {
-      position: fixed;
-      top: 0;
-      right: 0;
-      left: 0;
-      height: 50px;
-      background: #111;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      font-size: 20px;
-      z-index: 100;
-      gap: 15px;
-      border-bottom: 2px solid #222;
-    }
-    .site-title {
-                       margin: 0;
-                       font-weight: 30;
-                       line-height: 1;
-                       /* prevent header text from wrapping into multiple lines and overlapping content */
-                       white-space: nowrap;
-                       overflow: hidden;
-                       text-overflow: ellipsis;
-                       max-width: 55%; /* keeps buttons on the right visible; adjust if needed */
-                       font-size: clamp(14px, 3.2vw, 20px); 
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="music-icon-192x192.png" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #111;
+        color: white;
+        overflow-x: auto;
+        overflow-y: auto;
+      }
+      header {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 50px;
+        background: #111;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        font-size: 20px;
+        z-index: 100;
+        gap: 15px;
+        border-bottom: 2px solid #222;
+      }
+      .site-title {
+        margin: 0;
+        font-weight: 30;
+        line-height: 1;
+        /* prevent header text from wrapping into multiple lines and overlapping content */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 55%; /* keeps buttons on the right visible; adjust if needed */
+        font-size: clamp(14px, 3.2vw, 20px);
+      }
 
-    .spacer { flex: 1; }
-    .login-btn {
-      background: #1DB954;
-      color: #000;
-      border: none;
-      padding: 6px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: bold;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .decade-btn {
-      background: #222;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 3px;
-      font-size: 14px;
-    }
-    .main-container {
-      display: flex;
-      margin-top: 0px;
-    }
-    .rank-column {
-      position: fixed;
-      left: 0;
-      top: 50px;
-      width: 30px;
-      background: #111;
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow: hidden;
-    }
-    #rankScroller {
-      will-change: transform;
-      display: grid;
-      grid-auto-rows: var(--row-h, 252px);
-      padding-top: 0;
-    }
-    .rank-number {
-      height: var(--row-h, 252px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: #ffffff;
-      box-sizing: border-box;
-      width: 100%;
-      position: relative;
-      z-index: 5;
-    }
-    .years-container {
-      display: flex;
-      align-items: flex-start;
-      padding: 0px 10px 80px 60px; /* leave bottom space for player bar */
-      gap: 20px;
-      position: relative;
-    }
-    .year-column {
-      flex: 0 0 auto;
-      width: 180px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    .year-title {
-      position: sticky;
-      top: 50px;
-      font-size: 16px;
-      font-weight: bold;
-      background: #111;
-      padding: 8px 5px;
-      border-radius: 5px;
-      text-align: center;
-      width: 100%;
-      z-index: 10;
-    }
-    .albums-wrapper {
-      margin-top: 10px;
-      padding-top: 50px;
-      position: relative;
-    }
-    .album {
-      width: 100%;
-      height: auto;
-      margin-top: 5px;
-      margin-bottom: 0;
-      cursor: pointer;
-      position: relative;
-      z-index: 6;
-    }
-    .album img,
-    .album .no-cover {
-      width: 100%;
-      height: 180px;
-      display: block;
-      padding: 0;
-      margin: 0;
-      border-radius: 8px;
-      object-fit: cover;
-      background: #222;
-    }
-    .album-info {
-      height: 72px;
-      margin: 0;
-      padding-top: 4px;
-      font-size: 13px;
-      line-height: 18px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-    }
-    .albums-wrapper .album:nth-child(1),
-    #rankScroller .rank-number:nth-child(1) {
-      background: rgba(212, 175, 55, 0.2);
-      box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
-    }
-    .albums-wrapper .album:nth-child(2),
-    #rankScroller .rank-number:nth-child(2) {
-      background: rgba(192, 192, 192, 0.2);
-      box-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
-    }
-    .albums-wrapper .album:nth-child(3),
-    #rankScroller .rank-number:nth-child(3) {
-      background: rgba(205, 127, 50, 0.2);
-      box-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
-    }
-    .albums-wrapper .album:nth-child(n + 4):nth-child(-n + 10),
-    #rankScroller .rank-number:nth-child(n + 4):nth-child(-n + 10) {
-      background: rgba(140, 184, 245, 0.15);
-      box-shadow: 0 0 6px rgba(140, 184, 245, 0.35);
-    }
-    .albums-wrapper .album:nth-child(n + 11):nth-child(-n + 20),
-    #rankScroller .rank-number:nth-child(n + 11):nth-child(-n + 20) {
-      background: rgba(100, 149, 237, 0.15);
-      box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
-    }
-    .years-container::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: var(--rows-offset,0px);
-      height: var(--stripe-cover,0px);
-      z-index: 1;
-      pointer-events: none;
-      background-image: linear-gradient(
-        to bottom,
-        rgba(212, 175, 55, 0.2) 0%,
-        rgba(212, 175, 55, 0.2) 5%,
-        rgba(192, 192, 192, 0.2) 5%,
-        rgba(192, 192, 192, 0.2) 10%,
-        rgba(205, 127, 50, 0.2) 10%,
-        rgba(205, 127, 50, 0.2) 15%,
-        rgba(140, 184, 245, 0.15) 15%,
-        rgba(140, 184, 245, 0.15) 50%,
-        rgba(100, 149, 237, 0.15) 50%,
-        rgba(100, 149, 237, 0.15) 100%
-      );
-      background-size: 100% var(--stripe-block,4000px);
-      background-repeat: no-repeat;
-      filter: blur(6px) saturate(1.05);
-      opacity: 0.95;
-      -webkit-mask-image: linear-gradient(
-        to right,
-        transparent 0px,
-        rgba(0, 0, 0, 1) 60px,
-        rgba(0, 0, 0, 1) calc(100% - 60px),
-        transparent 100%
-      );
-      mask-image: linear-gradient(
-        to right,
-        transparent 0px,
-        rgba(0, 0, 0, 1) 60px,
-        rgba(0, 0, 0, 1) calc(100% - 60px),
-        transparent 100%
-      );
-    }
+      .spacer {
+        flex: 1;
+      }
+      .login-btn {
+        background: #1db954;
+        color: #000;
+        border: none;
+        padding: 6px 10px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .decade-btn {
+        background: #222;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 3px;
+        font-size: 14px;
+      }
+      .main-container {
+        display: flex;
+        margin-top: 0px;
+      }
+      .rank-column {
+        position: fixed;
+        left: 0;
+        top: 50px;
+        width: 30px;
+        background: #111;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+      }
+      #rankScroller {
+        will-change: transform;
+        display: grid;
+        grid-auto-rows: var(--row-h, 252px);
+        padding-top: 0;
+      }
+      .rank-number {
+        height: var(--row-h, 252px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #ffffff;
+        box-sizing: border-box;
+        width: 100%;
+        position: relative;
+        z-index: 5;
+      }
+      .years-container {
+        display: flex;
+        align-items: flex-start;
+        padding: 0px 10px 80px 60px; /* leave bottom space for player bar */
+        gap: 20px;
+        position: relative;
+      }
+      .year-column {
+        flex: 0 0 auto;
+        width: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+      .year-title {
+        position: sticky;
+        top: 50px;
+        font-size: 16px;
+        font-weight: bold;
+        background: #111;
+        padding: 8px 5px;
+        border-radius: 5px;
+        text-align: center;
+        width: 100%;
+        z-index: 10;
+      }
+      .albums-wrapper {
+        margin-top: 10px;
+        padding-top: 50px;
+        position: relative;
+      }
+      .album {
+        width: 100%;
+        height: auto;
+        margin-top: 5px;
+        margin-bottom: 0;
+        cursor: pointer;
+        position: relative;
+        z-index: 6;
+      }
+      .album img,
+      .album .no-cover {
+        width: 100%;
+        height: 180px;
+        display: block;
+        padding: 0;
+        margin: 0;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #222;
+      }
+      .album-info {
+        height: 72px;
+        margin: 0;
+        padding-top: 4px;
+        font-size: 13px;
+        line-height: 18px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+      .albums-wrapper .album:nth-child(1),
+      #rankScroller .rank-number:nth-child(1) {
+        background: rgba(212, 175, 55, 0.2);
+        box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+      }
+      .albums-wrapper .album:nth-child(2),
+      #rankScroller .rank-number:nth-child(2) {
+        background: rgba(192, 192, 192, 0.2);
+        box-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
+      }
+      .albums-wrapper .album:nth-child(3),
+      #rankScroller .rank-number:nth-child(3) {
+        background: rgba(205, 127, 50, 0.2);
+        box-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
+      }
+      .albums-wrapper .album:nth-child(n + 4):nth-child(-n + 10),
+      #rankScroller .rank-number:nth-child(n + 4):nth-child(-n + 10) {
+        background: rgba(140, 184, 245, 0.15);
+        box-shadow: 0 0 6px rgba(140, 184, 245, 0.35);
+      }
+      .albums-wrapper .album:nth-child(n + 11):nth-child(-n + 20),
+      #rankScroller .rank-number:nth-child(n + 11):nth-child(-n + 20) {
+        background: rgba(100, 149, 237, 0.15);
+        box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
+      }
+      .years-container::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: var(--rows-offset, 0px);
+        height: var(--stripe-cover, 0px);
+        z-index: 1;
+        pointer-events: none;
+        background-image: linear-gradient(
+          to bottom,
+          rgba(212, 175, 55, 0.2) 0%,
+          rgba(212, 175, 55, 0.2) 5%,
+          rgba(192, 192, 192, 0.2) 5%,
+          rgba(192, 192, 192, 0.2) 10%,
+          rgba(205, 127, 50, 0.2) 10%,
+          rgba(205, 127, 50, 0.2) 15%,
+          rgba(140, 184, 245, 0.15) 15%,
+          rgba(140, 184, 245, 0.15) 50%,
+          rgba(100, 149, 237, 0.15) 50%,
+          rgba(100, 149, 237, 0.15) 100%
+        );
+        background-size: 100% var(--stripe-block, 4000px);
+        background-repeat: no-repeat;
+        filter: blur(6px) saturate(1.05);
+        opacity: 0.95;
+        -webkit-mask-image: linear-gradient(
+          to right,
+          transparent 0px,
+          rgba(0, 0, 0, 1) 60px,
+          rgba(0, 0, 0, 1) calc(100% - 60px),
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          to right,
+          transparent 0px,
+          rgba(0, 0, 0, 1) 60px,
+          rgba(0, 0, 0, 1) calc(100% - 60px),
+          transparent 100%
+        );
+      }
 
-    /* --- Modal (album popup) --- */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-    }
-    .modal {
-      width: 90%;
-      max-width: 560px;
-      background: #181818;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .modal-header img {
-      width: 64px;
-      height: 64px;
-      border-radius: 8px;
-      object-fit: cover;
-    }
-    .modal-title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .modal-title .name { font-weight: bold; }
-    .modal-title .artist { color: #ddd; font-size: 13px; }
-    .tracks {
-      max-height: 60vh;
-      overflow: auto;
-      border-top: 1px solid #333;
-      padding-top: 8px;
-    }
-    .track {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .track:hover { background: #222; }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
-    .close-btn {
-      background: #333;
-      color: #fff;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+      /* --- Modal (album popup) --- */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+      .modal {
+        width: 90%;
+        max-width: 560px;
+        background: #181818;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .modal-header img {
+        width: 64px;
+        height: 64px;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+      .modal-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .modal-title .name {
+        font-weight: bold;
+      }
+      .modal-title .artist {
+        color: #ddd;
+        font-size: 13px;
+      }
+      .tracks {
+        max-height: 60vh;
+        overflow: auto;
+        border-top: 1px solid #333;
+        padding-top: 8px;
+      }
+      .track {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .track:hover {
+        background: #222;
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 8px;
+      }
+      .close-btn {
+        background: #333;
+        color: #fff;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
 
-    /* --- Bottom Player Bar --- */
-    .player-bar {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      width: 80%;
-      max-width: 960px;
-      height: 72px;
-      background: #181818;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      z-index: 40;
-      border-top: 1px solid #333;
-      border-radius: 12px 12px 0 0;
-      box-shadow: 0 -3px 10px rgba(0,0,0,0.5);
-    }
-    .controls { display: flex; align-items: center; gap: 12px; }
-    .ctrl-btn {
-      background: #222;
-      color: #fff;
-      border: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 18px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .track-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
-    .track-info img {
-      width: 48px;
-      height: 48px;
-      border-radius: 4px;
-      object-fit: cover;
-    }
-    .track-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-    .track-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-    .track-artist { font-size: 12px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* --- Bottom Player Bar --- */
+      .player-bar {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 0;
+        width: 80%;
+        max-width: 960px;
+        height: 72px;
+        background: #181818;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        z-index: 40;
+        border-top: 1px solid #333;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.5);
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .ctrl-btn {
+        background: #222;
+        color: #fff;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .track-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .track-info img {
+        width: 48px;
+        height: 48px;
+        border-radius: 4px;
+        object-fit: cover;
+      }
+      .track-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .track-name {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .track-artist {
+        font-size: 12px;
+        color: #ccc;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      justify-content: center;
-    }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+      }
 
-    .ctrl-btn {
-      background: #282828;
-      color: #fff;
-      border: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 16px;
-    }
+      .ctrl-btn {
+        background: #282828;
+        color: #fff;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+      }
 
-    .ctrl-btn:hover {
-      background: #3a3a3a;
-    }
+      .ctrl-btn:hover {
+        background: #3a3a3a;
+      }
 
-    .progress-container {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      width: 300px;
-    }
+      .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 300px;
+      }
 
-    #progressBar {
-      flex: 1;
-      -webkit-appearance: none;
-      height: 4px;
-      background: #535353;
-      border-radius: 2px;
-      cursor: pointer;
-    }
+      #progressBar {
+        flex: 1;
+        -webkit-appearance: none;
+        height: 4px;
+        background: #535353;
+        border-radius: 2px;
+        cursor: pointer;
+      }
 
-    #progressBar::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      box-shadow: 0 0 2px rgba(0,0,0,0.8);
-    }
+      #progressBar::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+      }
 
-    #progressBar::-moz-range-thumb {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      box-shadow: 0 0 2px rgba(0,0,0,0.8);
-    }
+      #progressBar::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+      }
 
-    #currentTime, #totalTime {
-      font-size: 10px;
-      color: #ccc;
-      width: 28px;
-      text-align: center;
-    }
+      #currentTime,
+      #totalTime {
+        font-size: 10px;
+        color: #ccc;
+        width: 28px;
+        text-align: center;
+      }
+      .filter-list {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* 4 buttons per row */
+        gap: 8px;
+        max-height: 60vh; /* scrollable if too tall */
+        overflow-y: auto;
+        padding: 8px 0;
+      }
 
- /* ----------------------------------------------- Section for small screens (Mobile) ------------------------------------------ */
+      .filter-btn-item {
+        padding: 6px 10px;
+        border: none;
+        border-radius: 6px;
+        background: #444;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        text-align: center;
+        transition: background 0.2s;
+        white-space: nowrap;
+      }
 
-@media (max-width: 600px) {
-  /* --- Header adjustments --- */
-  header {
-    left: 0; 
-    right: 0;
-    flex-wrap: wrap;        /* allow header items to wrap to next line on small screens */
-    height: auto;           /* height adapts if items wrap */
-    padding: 8px 12px;      /* reduce padding for smaller screens */
-  }
+      .filter-btn-item:hover {
+        background: #666;
+      }
 
-  .site-title {
-    flex: 1 1 100%;         /* allow title to take full width if needed */
-    max-width: 100%;        /* ensure title doesn't exceed container width */
-    font-size: clamp(16px, 4vw, 20px); /* responsive font size between 16px and 20px */
-    white-space: nowrap;    /* prevent wrapping */
-    overflow: hidden;       /* hide overflowed text */
-    text-overflow: ellipsis;/* show "..." when text overflows */
-  }
+      /* ----------------------------------------------- Section for small screens (Mobile) ------------------------------------------ */
 
-  .decade-btn {
-    flex: 1 1 auto;         /* buttons shrink evenly to fit available space */
-    font-size: 12px;        /* smaller font for mobile */
-    padding: 4px 6px;       /* smaller padding for compact layout */
-    margin: 2px 0;          /* vertical spacing between wrapped buttons */
-  }
+      @media (max-width: 600px) {
+        /* --- Header adjustments --- */
+        header {
+          left: 0;
+          right: 0;
+          flex-wrap: wrap; /* allow header items to wrap to next line on small screens */
+          height: auto; /* height adapts if items wrap */
+          padding: 8px 12px; /* reduce padding for smaller screens */
+        }
 
-  .login-btn {
-    flex: 1 1 auto;         /* allow login button to shrink if needed */
-    font-size: 12px;        /* smaller font size for mobile */
-    padding: 4px 6px;       /* smaller padding */
-  }
+        .site-title {
+          flex: 1 1 100%; /* allow title to take full width if needed */
+          max-width: 100%; /* ensure title doesn't exceed container width */
+          font-size: clamp(
+            16px,
+            4vw,
+            20px
+          ); /* responsive font size between 16px and 20px */
+          white-space: nowrap; /* prevent wrapping */
+          overflow: hidden; /* hide overflowed text */
+          text-overflow: ellipsis; /* show "..." when text overflows */
+        }
 
-  .spacer { display: none; } /* remove spacer on small screens to save space */
+        .decade-btn {
+          flex: 1 1 auto; /* buttons shrink evenly to fit available space */
+          font-size: 12px; /* smaller font for mobile */
+          padding: 4px 6px; /* smaller padding for compact layout */
+          margin: 2px 0; /* vertical spacing between wrapped buttons */
+        }
 
-  /* --- Main container adjustments --- */
-  .main-container {
-    display: flex;          /* maintain horizontal layout for rank + years */
-    flex-direction: row;    /* ensure row direction */
-    overflow: visible; /* was: overflow-x: auto; */
-    margin-top: calc(50px + 8px); /* leave space for header height */
-  }
+        .login-btn {
+          flex: 1 1 auto; /* allow login button to shrink if needed */
+          font-size: 12px; /* smaller font size for mobile */
+          padding: 4px 6px; /* smaller padding */
+        }
 
-  /* --- Rank column adjustments --- */
-  .rank-column {
-    position: fixed;                  /* keep rank column fixed on left */
-    left: 0;                          /* stick to left edge */
-    top: calc(50px + 8px);            /* position below header */
-    width: 30px;                       /* keep narrow column width */
-    height: calc(100vh - 50px - 8px - 72px); /* full height minus header + player bar */
-    z-index: 50;                       /* stay above albums */
-  }
+        .spacer {
+          display: none;
+        } /* remove spacer on small screens to save space */
 
-  /* --- Years container adjustments --- */
-  .years-container {
-    flex: 1 1 auto;
-    display: flex;
-    overflow-x: auto;     /* already correct */
-    overflow-y: visible;  /* NEW: allows sticky to work */
-    padding-left: 40px;
-    gap: 12px;
-    position: relative;
-  }
+        /* --- Main container adjustments --- */
+        .main-container {
+          display: flex; /* maintain horizontal layout for rank + years */
+          flex-direction: row; /* ensure row direction */
+          overflow: visible; /* was: overflow-x: auto; */
+          margin-top: calc(50px + 8px); /* leave space for header height */
+        }
 
-  .year-title {
-    position: -webkit-sticky; /* Safari/iOS */
-    position: sticky;         /* ensure stickiness applies on mobile */
-    top: calc(50px + 8px);    /* matches your mobile header offset */
-    z-index: 12;
-    background: #111;          /* avoids translucent overlap while sticking */
-  }
+        /* --- Rank column adjustments --- */
+        .rank-column {
+          position: fixed; /* keep rank column fixed on left */
+          left: 0; /* stick to left edge */
+          top: calc(50px + 8px); /* position below header */
+          width: 30px; /* keep narrow column width */
+          height: calc(
+            100vh - 50px - 8px - 72px
+          ); /* full height minus header + player bar */
+          z-index: 50; /* stay above albums */
+        }
 
-  .year-column {
-    flex: 0 0 140px;      /* set fixed width for year column */
-    min-width: 120px;     /* prevent columns from shrinking too much */
-  }
+        /* --- Years container adjustments --- */
+        .years-container {
+          flex: 1 1 auto;
+          display: flex;
+          overflow-x: auto; /* already correct */
+          overflow-y: visible; /* NEW: allows sticky to work */
+          padding-left: 40px;
+          gap: 12px;
+          position: relative;
+        }
 
-  /* --- Album adjustments --- */
-  .album img,
-  .album .no-cover {
-    height: 140px;        /* reduce album image height for mobile */
-  }
+        .year-title {
+          position: -webkit-sticky; /* Safari/iOS */
+          position: sticky; /* ensure stickiness applies on mobile */
+          top: calc(50px + 8px); /* matches your mobile header offset */
+          z-index: 12;
+          background: #111; /* avoids translucent overlap while sticking */
+        }
 
-  .album-info {
-    font-size: 12px;      /* smaller text for album info */
-    height: 60px;         /* reduce height to fit smaller screens */
-  }
+        .year-column {
+          flex: 0 0 140px; /* set fixed width for year column */
+          min-width: 120px; /* prevent columns from shrinking too much */
+        }
 
-  /* --- Modal adjustments --- */
-  .modal {
-    width: 95%;           /* almost full width on mobile */
-    max-width: 480px;     /* limit maximum width */
-  }
+        /* --- Album adjustments --- */
+        .album img,
+        .album .no-cover {
+          height: 140px; /* reduce album image height for mobile */
+        }
 
-  /* --- Bottom player bar adjustments --- */
-  .player-bar {
-    left: 30px;            /* start after rank column */
-    right: 0;              /* stretch fully to the right edge */
-    width: auto;           /* let left + right define the width (no calc needed) */
-    transform: none;       /* remove centering transform */
-    max-width: none;       /* allow full width on mobile */  
-    height: 60px;          /* reduce height for smaller screens */
-    border-radius: 8px 8px 0 0; /* rounded top corners only */
-    padding: 0 8px;        /* reduce horizontal padding */
-  }
+        .album-info {
+          font-size: 12px; /* smaller text for album info */
+          height: 60px; /* reduce height to fit smaller screens */
+        }
 
-  .controls {
-    gap: 8px;             /* reduce gap between control buttons */
-  }
+        /* --- Modal adjustments --- */
+        .modal {
+          width: 95%; /* almost full width on mobile */
+          max-width: 480px; /* limit maximum width */
+        }
 
-  .ctrl-btn {
-    width: 32px;          /* smaller circular buttons */
-    height: 32px;         /* smaller circular buttons */
-    font-size: 14px;      /* smaller icons/text */
-  }
+        /* --- Bottom player bar adjustments --- */
+        .player-bar {
+          left: 30px; /* start after rank column */
+          right: 0; /* stretch fully to the right edge */
+          width: auto; /* let left + right define the width (no calc needed) */
+          transform: none; /* remove centering transform */
+          max-width: none; /* allow full width on mobile */
+          height: 60px; /* reduce height for smaller screens */
+          border-radius: 8px 8px 0 0; /* rounded top corners only */
+          padding: 0 8px; /* reduce horizontal padding */
+        }
 
-  .track-info img {
-    width: 40px;          /* smaller album cover in player bar */
-    height: 40px;         /* maintain square aspect ratio */
-  }
+        .controls {
+          gap: 8px; /* reduce gap between control buttons */
+        }
 
-  .track-name { font-size: 12px; } /* smaller track name text */
-  .track-artist { font-size: 10px; } /* smaller artist name text */
+        .ctrl-btn {
+          width: 32px; /* smaller circular buttons */
+          height: 32px; /* smaller circular buttons */
+          font-size: 14px; /* smaller icons/text */
+        }
 
-  /* --- Mobile progress bar adjustments --- */
-  .progress-container {
-    display: flex;            /* align items horizontally */
-    align-items: center;      /* vertical alignment */
-    gap: 6px;                 /* spacing between currentTime, bar, totalTime */
-    width: calc(100% - 16px); /* leave 8px padding on each side inside player-bar */
-    max-width: 100%;          /* prevent overflow */
-  }
+        .track-info img {
+          width: 40px; /* smaller album cover in player bar */
+          height: 40px; /* maintain square aspect ratio */
+        }
 
-  #progressBar {
-    flex: 1;                  /* fill available space in container */
-    -webkit-appearance: none; /* remove default styling */
-    height: 3px;              /* thinner progress bar on mobile */
-    background: #535353;
-    border-radius: 2px;
-    cursor: pointer;
-    width: 100%;              /* fill container exactly */
-  }
+        .track-name {
+          font-size: 12px;
+        } /* smaller track name text */
+        .track-artist {
+          font-size: 10px;
+        } /* smaller artist name text */
 
-  #progressBar::-webkit-slider-thumb,
-  #progressBar::-moz-range-thumb {
-    width: 10px;  /* smaller slider thumb for mobile */
-    height: 10px; /* smaller slider thumb for mobile */
-    border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
-    box-shadow: 0 0 2px rgba(0,0,0,0.8);
-  }
+        /* --- Mobile progress bar adjustments --- */
+        .progress-container {
+          display: flex; /* align items horizontally */
+          align-items: center; /* vertical alignment */
+          gap: 6px; /* spacing between currentTime, bar, totalTime */
+          width: calc(
+            100% - 16px
+          ); /* leave 8px padding on each side inside player-bar */
+          max-width: 100%; /* prevent overflow */
+        }
 
-  #currentTime, #totalTime {
-    font-size: 10px;          /* keep small on mobile */
-    color: #ccc;
-    width: 28px;
-    text-align: center;
-  }
-}
+        #progressBar {
+          flex: 1; /* fill available space in container */
+          -webkit-appearance: none; /* remove default styling */
+          height: 3px; /* thinner progress bar on mobile */
+          background: #535353;
+          border-radius: 2px;
+          cursor: pointer;
+          width: 100%; /* fill container exactly */
+        }
 
- /* ----------------------------------------------- End of Section for small screens (Mobile) ------------------------------------------ */
+        #progressBar::-webkit-slider-thumb,
+        #progressBar::-moz-range-thumb {
+          width: 10px; /* smaller slider thumb for mobile */
+          height: 10px; /* smaller slider thumb for mobile */
+          border-radius: 50%;
+          background: #fff;
+          cursor: pointer;
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+        }
 
-  </style>
-</head>
-<body>
-<header>
-  <div class="site-title">Top Albums by Year</div>
-  <button class="decade-btn" onclick="scrollToDecade('199')">1990s</button>
-  <button class="decade-btn" onclick="scrollToDecade('200')">2000s</button>
-  <button class="decade-btn" onclick="scrollToDecade('201')">2010s</button>
-  <button class="decade-btn" onclick="scrollToDecade('202')">2020s</button>
-  <div class="spacer"></div>
-  <button id="loginBtn" class="login-btn">Log in with Spotify</button>
-</header>
+        #currentTime,
+        #totalTime {
+          font-size: 10px; /* keep small on mobile */
+          color: #ccc;
+          width: 28px;
+          text-align: center;
+        }
+      }
 
-<div class="main-container">
-  <div class="rank-column" id="rankColumn">
-    <div id="rankScroller"></div>
-  </div>
-  <div class="years-container" id="yearsContainer"></div>
-</div>
+      /* ----------------------------------------------- End of Section for small screens (Mobile) ------------------------------------------ */
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="site-title">Top Albums by Year</div>
+      <button class="decade-btn" onclick="scrollToDecade('199')">1990s</button>
+      <button class="decade-btn" onclick="scrollToDecade('200')">2000s</button>
+      <button class="decade-btn" onclick="scrollToDecade('201')">2010s</button>
+      <button class="decade-btn" onclick="scrollToDecade('202')">2020s</button>
+      <div class="spacer"></div>
+      <button id="loginBtn" class="login-btn">Log in with Spotify</button>
+    </header>
 
-<!-- Modal -->
-<div id="albumModalBackdrop" class="modal-backdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <img id="modalCover" src="" alt="">
-      <div class="modal-title">
-        <div class="name" id="modalAlbumName"></div>
-        <div class="artist" id="modalArtistName"></div>
+    <div class="main-container">
+      <div class="rank-column" id="rankColumn">
+        <div id="rankScroller"></div>
       </div>
-      <div style="margin-left:auto;">
-        <button id="modalPlayBtn" class="login-btn" style="padding:6px 12px;">Play</button>
+      <div class="years-container" id="yearsContainer"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="albumModalBackdrop" class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header">
+          <img id="modalCover" src="" alt="" />
+          <div class="modal-title">
+            <div class="name" id="modalAlbumName"></div>
+            <div class="artist" id="modalArtistName"></div>
+          </div>
+          <div style="margin-left: auto">
+            <button
+              id="modalPlayBtn"
+              class="login-btn"
+              style="padding: 6px 12px"
+            >
+              Play
+            </button>
+          </div>
+        </div>
+        <div class="tracks" id="tracksList"></div>
+        <div class="modal-actions">
+          <button id="closeModalBtn" class="close-btn">Close</button>
+        </div>
       </div>
     </div>
-    <div class="tracks" id="tracksList"></div>
-    <div class="modal-actions">
-      <button id="closeModalBtn" class="close-btn">Close</button>
+
+    <!-- Bottom Player Bar -->
+    <div class="player-bar">
+      <div class="track-info" id="barInfo">
+        <img
+          id="barCover"
+          src=""
+          alt="Album Cover"
+          style="display: block"
+          onerror="this.style.display='none'"
+        />
+        <div class="track-text">
+          <div id="barTrack" class="track-name"></div>
+          <div id="barArtist" class="track-artist"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="prevBtn" class="ctrl-btn" title="Previous">⏮️</button>
+        <button id="playPauseBtn" class="ctrl-btn" title="Play/Pause">
+          ▶️
+        </button>
+        <button id="nextBtn" class="ctrl-btn" title="Next">⏭️</button>
+        <div class="progress-container">
+          <span id="currentTime">0:00</span>
+          <input type="range" id="progressBar" min="0" max="100" value="0" />
+          <span id="totalTime">0:00</span>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Bottom Player Bar -->
-<div class="player-bar">
-  <div class="track-info" id="barInfo">
-<img id="barCover" src="" alt="Album Cover" style="display:block;" onerror="this.style.display='none'" />
-    <div class="track-text">
-      <div id="barTrack" class="track-name"></div>
-      <div id="barArtist" class="track-artist"></div>
-    </div>
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <div class="controls">
-    <button id="prevBtn" class="ctrl-btn" title="Previous">⏮️</button>
-    <button id="playPauseBtn" class="ctrl-btn" title="Play/Pause">▶️</button>
-    <button id="nextBtn" class="ctrl-btn" title="Next">⏭️</button>
-    <div class="progress-container">
-      <span id="currentTime">0:00</span>
-      <input type="range" id="progressBar" min="0" max="100" value="0">
-      <span id="totalTime">0:00</span>
-    </div>
-  </div>
-</div>
+    <script>
+      /* ===================== CONFIG ===================== */
+      const CONFIG = {
+        SHEET_CSV_URL:
+          "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
+        SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce", // Public is OK
+        REDIRECT_URI: "https://top-albums.netlify.app", // Must match Spotify app settings
+        BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth",
+      };
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+      let token = null;
+      let refreshToken = null;
+      let spotifyUsername = null; // will store logged-in user name
+      let albumsData = [];
+      let player = null;
+      let deviceId = null;
+      let currentAlbumUri = null;
+      let progressInterval = null;
 
-<script>
-/* ===================== CONFIG ===================== */
-const CONFIG = {
-  SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
-  SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce", // Public is OK
-  REDIRECT_URI: "https://top-albums.netlify.app",         // Must match Spotify app settings
-  BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth"
-};
+      // ====== DOM ELEMENTS ======
+      const barInfo = document.getElementById("barInfo");
+      const progressBar = document.getElementById("progressBar");
+      const currentTimeEl = document.getElementById("currentTime");
+      const totalTimeEl = document.getElementById("totalTime");
+      const playPauseBtn = document.getElementById("playPauseBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const prevBtn = document.getElementById("prevBtn");
+      const modalBackdrop = document.getElementById("albumModalBackdrop");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const modalCover = document.getElementById("modalCover");
+      const modalAlbumName = document.getElementById("modalAlbumName");
+      const modalArtistName = document.getElementById("modalArtistName");
+      const tracksList = document.getElementById("tracksList");
+      const modalPlayBtn = document.getElementById("modalPlayBtn");
+      const loginBtn = document.getElementById("loginBtn");
 
-let token = null;
-let refreshToken = null;
-let spotifyUsername = null; // will store logged-in user name
-let albumsData = [];
-let player = null;
-let deviceId = null;
-let currentAlbumUri = null;
-let progressInterval = null;
-
-// ====== DOM ELEMENTS ======
-const barInfo = document.getElementById("barInfo");
-const progressBar = document.getElementById("progressBar");
-const currentTimeEl = document.getElementById("currentTime");
-const totalTimeEl = document.getElementById("totalTime");
-const playPauseBtn = document.getElementById("playPauseBtn");
-const nextBtn = document.getElementById("nextBtn");
-const prevBtn = document.getElementById("prevBtn");
-const modalBackdrop = document.getElementById("albumModalBackdrop");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const modalCover = document.getElementById("modalCover");
-const modalAlbumName = document.getElementById("modalAlbumName");
-const modalArtistName = document.getElementById("modalArtistName");
-const tracksList = document.getElementById("tracksList");
-const modalPlayBtn = document.getElementById("modalPlayBtn");
-const loginBtn = document.getElementById("loginBtn");
-
-// Toggle behavior for login/logout
-loginBtn.addEventListener("click", () => {
-  if (isLoggedIn) {
-    logoutSpotify(); // logs out
-  } else {
-    // existing login redirect flow
-    window.location.href = "https://accounts.spotify.com/authorize?...";
-  }
-});
-
-// ====== DOM EVENT LISTENERS ======
-barInfo.addEventListener("click", () => { if (currentAlbumUri) showModal(); });
-playPauseBtn.addEventListener("click", () => { if (player) player.togglePlay(); });
-nextBtn.addEventListener("click", () => { if (player) player.nextTrack(); });
-prevBtn.addEventListener("click", () => { if (player) player.previousTrack(); });
-closeModalBtn.addEventListener("click", hideModal);
-modalBackdrop.addEventListener("click", (e) => { if (e.target === modalBackdrop) hideModal(); });
-modalPlayBtn.addEventListener("click", () => { if (currentAlbumUri) startAlbumPlayback(currentAlbumUri); });
-loginBtn.addEventListener("click", authenticateSpotify);
-
-// ====== DATA LOAD ======
-async function fetchAlbums() {
-  try {
-    const response = await fetch(CONFIG.SHEET_CSV_URL);
-    const text = await response.text();
-    Papa.parse(text, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        albumsData = results.data;
-        renderAlbums();
-      },
-    });
-  } catch (err) {
-    console.error("Error fetching CSV:", err);
-  }
-}
-
-function renderAlbums() {
-  const container = document.getElementById("yearsContainer");
-  const rankScroller = document.getElementById("rankScroller");
-  container.innerHTML = "";
-  rankScroller.innerHTML = "";
-
-  const years = [...new Set(albumsData.map(a => a.Year))].sort();
-  let globalRank = 1;
-
-  years.forEach(year => {
-    const yearCol = document.createElement("div");
-    yearCol.className = "year-column";
-
-    const yearDiv = document.createElement("div");
-    yearDiv.className = "year-title";
-    yearDiv.innerText = year;
-    yearCol.appendChild(yearDiv);
-
-    const albumsWrapper = document.createElement("div");
-    albumsWrapper.className = "albums-wrapper";
-
-    const albumsOfYear = albumsData
-      .filter(a => a.Year === year)
-      .sort((a,b)=>Number(a.Rank)-Number(b.Rank));
-
-    albumsOfYear.forEach(a=>{
-      const [artist, albumTitle] = (a["Album-Artist"]?.split(" - ") || ["Unknown","Unknown"]).map(s=>s.trim());
-      const div = document.createElement("div");
-      div.className = "album";
-
-      const infoDiv = document.createElement("div");
-      infoDiv.className = "album-info";
-      infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
-
-      const cover = a.CoverURL ? createCoverImg(a.CoverURL) : createNoCover();
-      div.appendChild(cover);
-      div.appendChild(infoDiv);
-
-      div.onclick = ()=> openAlbumPopup(a, artist, albumTitle);
-
-      albumsWrapper.appendChild(div);
-
-      const rankDiv = document.createElement("div");
-      rankDiv.className = "rank-number";
-      rankDiv.innerText = globalRank++;
-      rankScroller.appendChild(rankDiv);
-    });
-
-    yearCol.appendChild(albumsWrapper);
-    container.appendChild(yearCol);
-  });
-
-  // Ensure layout metrics are calculated first, then scroll.
-  requestAnimationFrame(() => {
-    syncRankMetrics();
-
-    // ===== Scroll to current year or latest available =====
-    const currentYear = new Date().getFullYear().toString();
-    const yearCols = [...container.children];
-
-    // Try to find current year first
-    let target = yearCols.find(col => col.firstChild && col.firstChild.innerText === currentYear);
-
-    // If not found, pick the latest year
-    if (!target && yearCols.length > 0) {
-      target = yearCols[yearCols.length - 1];
-    }
-
-    if (target) {
-      // use 'auto' to avoid interfering with user perception on initial load
-      target.scrollIntoView({ behavior: "auto", inline: "start" });
-    }
-  });
-}
-
-function createCoverImg(url){const img=document.createElement("img");img.src=url;return img;}
-function createNoCover(){const div=document.createElement("div");div.className="no-cover";div.innerText="Album not on Spotify";return div;}
-function scrollToDecade(decadePrefix){
-  const container=document.getElementById("yearsContainer");
-  const target=[...container.children].find(col=>col.firstChild && col.firstChild.innerText.startsWith(decadePrefix));
-  if(target)target.scrollIntoView({behavior:"smooth",inline:"start"});
-}
-
-// ====== AUTH (PKCE) ======
-function generateRandomString(length){let text="";const possible="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";for(let i=0;i<length;i++){text+=possible.charAt(Math.floor(Math.random()*possible.length));}return text;}
-async function generateCodeChallenge(codeVerifier){const encoder=new TextEncoder();const data=encoder.encode(codeVerifier);const digest=await window.crypto.subtle.digest("SHA-256",data);return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
-function authenticateSpotify(){const codeVerifier=generateRandomString(128);localStorage.setItem("code_verifier",codeVerifier);generateCodeChallenge(codeVerifier).then(codeChallenge=>{const scope="user-modify-playback-state user-read-playback-state streaming";const authUrl=`https://accounts.spotify.com/authorize?response_type=code&client_id=${CONFIG.SPOTIFY_CLIENT_ID}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&code_challenge_method=S256&code_challenge=${codeChallenge}`;window.location=authUrl;});}
-async function handleAuthRedirect(){
-  const params=new URLSearchParams(window.location.search);
-  const code=params.get("code");
-  const storedVerifier=localStorage.getItem("code_verifier");
-
-  const existing = localStorage.getItem("spotify_access_token");
-  if (existing) { token = existing; initPlayerIfPossible(); }
-
-  if(code && storedVerifier){
-    try{
-      const res = await fetch(`${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
-      const data=await res.json();
-      if(data.access_token){
-        token=data.access_token;
-        localStorage.setItem("spotify_access_token", token);
-        localStorage.removeItem("code_verifier");
-        window.history.replaceState({},document.title,CONFIG.REDIRECT_URI);
-        initPlayerIfPossible();
-      } else { console.error("Spotify token error:",data); alert("Spotify login failed. Check console."); }
-    }catch(err){ console.error("Error fetching Spotify token:",err); alert("Spotify login failed. Check console."); }
-  }
-}
-async function fetchSpotifyProfile() {
-  if (!token) return null;
-  try {
-    const resp = await fetch("https://api.spotify.com/v1/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!resp.ok) throw new Error("Spotify API request failed");
-
-    const data = await resp.json();
-    updateLoginButton(data);   // 🟢 NEW: use update function
-    return data;
-  } catch (e) {
-    console.error("Failed to fetch Spotify profile:", e);
-    updateLoginButton(null);   // 🟢 NEW: reset on error
-    return null;
-  }
-}
-// 🟢 NEW: Track login state
-let isLoggedIn = false;
-
-// Update button state (login/logout)
-function updateLoginButton(user) {
-  if (user && (user.display_name || user.id)) {
-    isLoggedIn = true;
-    loginBtn.textContent = `Logged in as ${user.display_name || user.id} (Logout)`;
-  } else {
-    isLoggedIn = false;
-    loginBtn.textContent = "Click to login to Spotify";
-  }
-}
-
-// Logout function
-function logoutSpotify() {
-  localStorage.removeItem("spotify_access_token");
-  token = null;
-  spotifyUsername = null;
-  updateLoginButton(null);
-}
-
-
-
-
-// ====== SPOTIFY WEB PLAYBACK SDK ======
-/* Keep this global defined BEFORE the SDK script executes.
-   spotify-player.js will call this when it loads. */
-window.onSpotifyWebPlaybackSDKReady = () => { initPlayerIfPossible(); };
-
-function initPlayerIfPossible(){
-  if (!window.Spotify || !token || player) return;
-
-  player = new Spotify.Player({
-    name: 'Top Albums Web Player',
-    getOAuthToken: cb => { cb(token); },
-    volume: 0.7
-  });
-
-  player.addListener('initialization_error', ({ message }) => console.error('init_error', message));
-  player.addListener('authentication_error', ({ message }) => console.error('auth_error', message));
-  player.addListener('account_error', ({ message }) => console.error('account_error', message));
-  player.addListener('playback_error', ({ message }) => console.error('playback_error', message));
-
-  player.addListener('ready', ({ device_id }) => {
-    console.log('Ready with Device ID', device_id);
-    deviceId = device_id;
-    localStorage.setItem("spotify_device_id", deviceId);
-    transferPlaybackToDevice();
-  });
-
-  // Use single, top-level updateBarFromState
-  player.addListener('player_state_changed', state => {
-    if (!state) return;
-    updateBarFromState(state);
-
-    // Start or stop the automatic progress updater
-    if (state.paused) stopProgressUpdater();
-    else startProgressUpdater();
-
-    document.getElementById('playPauseBtn').textContent = state.paused ? "▶️" : "⏸️";
-  });
-
-  player.connect();
-}
-
-// ====== PROGRESS BAR & TRACK INFO ======
-function updateBarFromState(state){
-  const current = state.track_window.current_track;
-  if (!current) return;
-
-  const cover = current.album.images?.[0]?.url || "";
-const barCover = document.getElementById("barCover");
-if (cover) {
-    barCover.src = cover;
-    barCover.style.display = "block"; // make sure it shows
-} else {
-    barCover.removeAttribute("src");
-    barCover.style.display = "none"; // hide if no cover
-}
-  document.getElementById("barTrack").textContent = current.name || "—";
-  document.getElementById("barArtist").textContent = (current.artists?.[0]?.name) || "—";
-
-  currentAlbumUri = current.album.uri;
-
-  const duration = current.duration_ms;
-  totalTimeEl.textContent = formatTime(duration);
-
-  const pos = state.position;
-  currentTimeEl.textContent = formatTime(pos);
-  progressBar.value = Math.min(100, (pos / duration) * 100);
-}
-
-progressBar.addEventListener("input", async (e) => {
-  if (!player) return;
-  const percent = e.target.value;
-  const state = await player.getCurrentState();
-  if (!state || !state.track_window.current_track) return;
-  const duration = state.track_window.current_track.duration_ms;
-  const newPos = Math.floor(duration * (percent / 100));
-  player.seek(newPos);
-});
-
-// ====== FORMAT TIME ======
-function formatTime(ms){
-  const totalSec = Math.floor(ms/1000);
-  const mins = Math.floor(totalSec/60);
-  const secs = totalSec % 60;
-  return `${mins}:${secs.toString().padStart(2,'0')}`;
-}
-//Update the progress bar
-function startProgressUpdater() {
-  if (progressInterval) clearInterval(progressInterval);
-  progressInterval = setInterval(async () => {
-    if (!player) return;
-    const state = await player.getCurrentState();
-    if (!state || !state.track_window.current_track) return;
-
-    const pos = state.position;
-    const duration = state.track_window.current_track.duration_ms;
-    currentTimeEl.textContent = formatTime(pos);
-    totalTimeEl.textContent = formatTime(duration);
-    progressBar.value = Math.min(100, (pos / duration) * 100);
-  }, 500); // updates every 0.5 seconds
-}
-
-function stopProgressUpdater() {
-  if (progressInterval) clearInterval(progressInterval);
-}
-
-// ====== MODAL ======
-function showModal(){ modalBackdrop.style.display = "flex"; }
-function hideModal(){ modalBackdrop.style.display = "none"; }
-async function openAlbumPopup(albumRow, artist, albumTitle){
-  if (!token) { authenticateSpotify(); return; }
-  currentAlbumUri = albumRow.SpotifyURI || null;
-  if (!currentAlbumUri) { alert("No Spotify album URI for this item."); return; }
-
-  modalAlbumName.textContent = albumTitle || "—";
-  modalArtistName.textContent = artist || "—";
-  if (albumRow.CoverURL) modalCover.src = albumRow.CoverURL; else modalCover.removeAttribute("src");
-
-  tracksList.innerHTML = "Loading tracks…";
-  const albumId = uriToId(currentAlbumUri);
-  try {
-    const resp = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    const data = await resp.json();
-    const items = data.items || [];
-    if (!items.length) { tracksList.innerHTML = "<div style='color:#bbb'>No tracks found.</div>"; }
-    else {
-      tracksList.innerHTML = "";
-      items.forEach((t, idx) => {
-        const div = document.createElement("div");
-        div.className = "track";
-        const mins = Math.floor((t.duration_ms||0)/60000);
-        const secs = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
-        div.innerHTML = `<div>#${(t.track_number||idx+1)} — ${t.name}</div><div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>`;
-        div.onclick = () => startTrackPlayback(currentAlbumUri, t.uri);
-        tracksList.appendChild(div);
+      // Toggle behavior for login/logout
+      loginBtn.addEventListener("click", () => {
+        if (isLoggedIn) {
+          logoutSpotify(); // logs out
+        } else {
+          // existing login redirect flow
+          window.location.href = "https://accounts.spotify.com/authorize?...";
+        }
       });
-    }
-  } catch (e) { console.error(e); tracksList.innerHTML = "<div style='color:#f77'>Failed to load tracks</div>"; }
 
-  showModal();
-}
+      // ====== DOM EVENT LISTENERS ======
+      barInfo.addEventListener("click", () => {
+        if (currentAlbumUri) showModal();
+      });
+      playPauseBtn.addEventListener("click", () => {
+        if (player) player.togglePlay();
+      });
+      nextBtn.addEventListener("click", () => {
+        if (player) player.nextTrack();
+      });
+      prevBtn.addEventListener("click", () => {
+        if (player) player.previousTrack();
+      });
+      closeModalBtn.addEventListener("click", hideModal);
+      modalBackdrop.addEventListener("click", (e) => {
+        if (e.target === modalBackdrop) hideModal();
+      });
+      modalPlayBtn.addEventListener("click", () => {
+        if (currentAlbumUri) startAlbumPlayback(currentAlbumUri);
+      });
+      loginBtn.addEventListener("click", authenticateSpotify);
 
-// ====== PLAYBACK HELPERS ======
-function uriToId(uri) {
-  if (!uri) return null;
-  if (uri.startsWith("spotify:album:")) return uri.split(":")[2];
-  const match = uri.match(/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
-  if (match) return match[1];
-  return null;
-}
-async function startAlbumPlayback(albumUri) {
-  if (!token || !deviceId) return;
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
-    body: JSON.stringify({ context_uri: albumUri })
-  }).catch(e => console.error(e));
-}
-async function startTrackPlayback(albumUri, trackUri) {
-  if (!token || !deviceId) return;
-  const offset = trackUri ? { uri: trackUri } : undefined;
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ context_uri: albumUri, offset: offset })
-  }).catch(e => console.error(e));
-}
+      // ====== DATA LOAD ======
+      async function fetchAlbums() {
+        try {
+          const response = await fetch(CONFIG.SHEET_CSV_URL);
+          const text = await response.text();
+          Papa.parse(text, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+              albumsData = results.data;
+              renderAlbums();
+            },
+          });
+        } catch (err) {
+          console.error("Error fetching CSV:", err);
+        }
+      }
 
-// ====== LAYOUT SYNC ======
-function syncRankMetrics(){
-  const firstAlbum=document.querySelector(".albums-wrapper .album");
-  const rankScroller=document.getElementById("rankScroller");
-  const firstYearTitle=document.querySelector(".year-title");
-  const yearsContainer=document.getElementById("yearsContainer");
-  if(!firstAlbum||!rankScroller||!firstYearTitle||!yearsContainer)return;
-  const albumContentH=firstAlbum.getBoundingClientRect().height;
-  const albumMarginTop=parseFloat(getComputedStyle(firstAlbum).marginTop||"0");
-  const totalRowH=albumContentH+albumMarginTop;
-  rankScroller.style.setProperty("--row-h",totalRowH+"px");
-  rankScroller.style.gridAutoRows=totalRowH+"px";
-  document.documentElement.style.setProperty("--row-h",totalRowH+"px");
-  const yearTitleH=firstYearTitle.getBoundingClientRect().height;
-  const wrapperMarginTop=parseFloat(getComputedStyle(firstAlbum.parentElement).marginTop||"0");
-  const rowsOffsetFixed=yearTitleH+wrapperMarginTop;
-  rankScroller.style.paddingTop=rowsOffsetFixed+"px";
-  const yearsRect=yearsContainer.getBoundingClientRect();
-  const firstAlbumRect=firstAlbum.getBoundingClientRect();
-  const rowsOffsetForCSS=firstAlbumRect.top-yearsRect.top;
-  document.documentElement.style.setProperty("--rows-offset",Math.max(0,rowsOffsetForCSS)+"px");
-  const totalAlbums=document.querySelectorAll("#rankScroller .rank-number").length;
-  const rowsToCover=Math.min(totalAlbums,20);
-  const stripeCoverHeight=rowsToCover*totalRowH;
-  document.documentElement.style.setProperty("--stripe-block",totalRowH*20+"px");
-  document.documentElement.style.setProperty("--stripe-cover",stripeCoverHeight+"px");
-}
-window.addEventListener("scroll",()=>{ const rankScroller=document.getElementById("rankScroller"); const offset=parseFloat(rankScroller.dataset.offsetTop||0); rankScroller.style.transform=`translateY(${offset-window.scrollY}px)`; },{passive:true});
-window.addEventListener("resize",syncRankMetrics);
+      function renderAlbums() {
+        const container = document.getElementById("yearsContainer");
+        const rankScroller = document.getElementById("rankScroller");
+        container.innerHTML = "";
+        rankScroller.innerHTML = "";
 
-// ====== PLAYER CONNECT ======
-async function transferPlaybackToDevice(){
-  try {
-    await fetch("https://api.spotify.com/v1/me/player", {
-      method: "PUT",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type":"application/json" },
-      body: JSON.stringify({ device_ids: [deviceId], play: false })
-    });
-  } catch (e) { console.error('transferPlaybackToDevice', e); }
-}
+        const years = [...new Set(albumsData.map((a) => a.Year))].sort();
+        let globalRank = 1;
 
-// ====== BOOT ======
-window.onload = async () => {
-  await handleAuthRedirect(); // only handles redirect after Spotify login
+        years.forEach((year) => {
+          const yearCol = document.createElement("div");
+          yearCol.className = "year-column";
 
-// Check if already logged in
-const storedToken = localStorage.getItem("spotify_access_token");
-if (storedToken) {
-  token = storedToken;
-  const profile = await fetchSpotifyProfile();
-  if (!profile) {
-    // Token exists but profile fetch failed
-    loginBtn.textContent = "Click to login to Spotify";
-  }
-} else {
-  loginBtn.textContent = "Click to login to Spotify";
-}
+          const yearDiv = document.createElement("div");
+          yearDiv.className = "year-title";
+          yearDiv.innerText = year;
+          yearCol.appendChild(yearDiv);
 
-  await fetchAlbums(); // load albums independently of login
-};
+          const albumsWrapper = document.createElement("div");
+          albumsWrapper.className = "albums-wrapper";
 
-</script>
+          const albumsOfYear = albumsData
+            .filter((a) => a.Year === year)
+            .sort((a, b) => Number(a.Rank) - Number(b.Rank));
 
-<!-- Move Spotify SDK load to AFTER the main script so the global callback exists when the SDK runs -->
-<script src="https://sdk.scdn.co/spotify-player.js"></script>
+          albumsOfYear.forEach((a) => {
+            const [artist, albumTitle] = (
+              a["Album-Artist"]?.split(" - ") || ["Unknown", "Unknown"]
+            ).map((s) => s.trim());
+            const div = document.createElement("div");
+            div.className = "album";
 
-</body>
+            const infoDiv = document.createElement("div");
+            infoDiv.className = "album-info";
+            infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
+
+            const cover = a.CoverURL
+              ? createCoverImg(a.CoverURL)
+              : createNoCover();
+            div.appendChild(cover);
+            div.appendChild(infoDiv);
+
+            div.onclick = () => openAlbumPopup(a, artist, albumTitle);
+
+            albumsWrapper.appendChild(div);
+
+            const rankDiv = document.createElement("div");
+            rankDiv.className = "rank-number";
+            rankDiv.innerText = globalRank++;
+            rankScroller.appendChild(rankDiv);
+          });
+
+          yearCol.appendChild(albumsWrapper);
+          container.appendChild(yearCol);
+        });
+
+        // Ensure layout metrics are calculated first, then scroll.
+        requestAnimationFrame(() => {
+          syncRankMetrics();
+
+          // ===== Scroll to current year or latest available =====
+          const currentYear = new Date().getFullYear().toString();
+          const yearCols = [...container.children];
+
+          // Try to find current year first
+          let target = yearCols.find(
+            (col) => col.firstChild && col.firstChild.innerText === currentYear
+          );
+
+          // If not found, pick the latest year
+          if (!target && yearCols.length > 0) {
+            target = yearCols[yearCols.length - 1];
+          }
+
+          if (target) {
+            // use 'auto' to avoid interfering with user perception on initial load
+            target.scrollIntoView({ behavior: "auto", inline: "start" });
+          }
+        });
+      }
+
+      function createCoverImg(url) {
+        const img = document.createElement("img");
+        img.src = url;
+        return img;
+      }
+      function createNoCover() {
+        const div = document.createElement("div");
+        div.className = "no-cover";
+        div.innerText = "Album not on Spotify";
+        return div;
+      }
+      function scrollToDecade(decadePrefix) {
+        const container = document.getElementById("yearsContainer");
+        const target = [...container.children].find(
+          (col) =>
+            col.firstChild && col.firstChild.innerText.startsWith(decadePrefix)
+        );
+        if (target)
+          target.scrollIntoView({ behavior: "smooth", inline: "start" });
+      }
+
+      // ====== AUTH (PKCE) ======
+      function generateRandomString(length) {
+        let text = "";
+        const possible =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (let i = 0; i < length; i++) {
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
+      }
+      async function generateCodeChallenge(codeVerifier) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(codeVerifier);
+        const digest = await window.crypto.subtle.digest("SHA-256", data);
+        return btoa(String.fromCharCode(...new Uint8Array(digest)))
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+      }
+      function authenticateSpotify() {
+        const codeVerifier = generateRandomString(128);
+        localStorage.setItem("code_verifier", codeVerifier);
+        generateCodeChallenge(codeVerifier).then((codeChallenge) => {
+          const scope =
+            "user-modify-playback-state user-read-playback-state streaming";
+          const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${
+            CONFIG.SPOTIFY_CLIENT_ID
+          }&scope=${encodeURIComponent(
+            scope
+          )}&redirect_uri=${encodeURIComponent(
+            CONFIG.REDIRECT_URI
+          )}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
+          window.location = authUrl;
+        });
+      }
+      async function handleAuthRedirect() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        const storedVerifier = localStorage.getItem("code_verifier");
+
+        const existing = localStorage.getItem("spotify_access_token");
+        if (existing) {
+          token = existing;
+          initPlayerIfPossible();
+        }
+
+        if (code && storedVerifier) {
+          try {
+            const res = await fetch(
+              `${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(
+                code
+              )}&verifier=${encodeURIComponent(storedVerifier)}`
+            );
+            const data = await res.json();
+            if (data.access_token) {
+              token = data.access_token;
+              localStorage.setItem("spotify_access_token", token);
+              localStorage.removeItem("code_verifier");
+              window.history.replaceState(
+                {},
+                document.title,
+                CONFIG.REDIRECT_URI
+              );
+              initPlayerIfPossible();
+            } else {
+              console.error("Spotify token error:", data);
+              alert("Spotify login failed. Check console.");
+            }
+          } catch (err) {
+            console.error("Error fetching Spotify token:", err);
+            alert("Spotify login failed. Check console.");
+          }
+        }
+      }
+      async function fetchSpotifyProfile() {
+        if (!token) return null;
+        try {
+          const resp = await fetch("https://api.spotify.com/v1/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!resp.ok) throw new Error("Spotify API request failed");
+
+          const data = await resp.json();
+          updateLoginButton(data); // 🟢 NEW: use update function
+          return data;
+        } catch (e) {
+          console.error("Failed to fetch Spotify profile:", e);
+          updateLoginButton(null); // 🟢 NEW: reset on error
+          return null;
+        }
+      }
+      // 🟢 NEW: Track login state
+      let isLoggedIn = false;
+
+      // Update button state (login/logout)
+      function updateLoginButton(user) {
+        if (user && (user.display_name || user.id)) {
+          isLoggedIn = true;
+          loginBtn.textContent = `Logged in as ${
+            user.display_name || user.id
+          } (Logout)`;
+        } else {
+          isLoggedIn = false;
+          loginBtn.textContent = "Click to login to Spotify";
+        }
+      }
+
+      // Logout function
+      function logoutSpotify() {
+        localStorage.removeItem("spotify_access_token");
+        token = null;
+        spotifyUsername = null;
+        updateLoginButton(null);
+      }
+
+      // ====== SPOTIFY WEB PLAYBACK SDK ======
+      /* Keep this global defined BEFORE the SDK script executes.
+   spotify-player.js will call this when it loads. */
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        initPlayerIfPossible();
+      };
+
+      function initPlayerIfPossible() {
+        if (!window.Spotify || !token || player) return;
+
+        player = new Spotify.Player({
+          name: "Top Albums Web Player",
+          getOAuthToken: (cb) => {
+            cb(token);
+          },
+          volume: 0.7,
+        });
+
+        player.addListener("initialization_error", ({ message }) =>
+          console.error("init_error", message)
+        );
+        player.addListener("authentication_error", ({ message }) =>
+          console.error("auth_error", message)
+        );
+        player.addListener("account_error", ({ message }) =>
+          console.error("account_error", message)
+        );
+        player.addListener("playback_error", ({ message }) =>
+          console.error("playback_error", message)
+        );
+
+        player.addListener("ready", ({ device_id }) => {
+          console.log("Ready with Device ID", device_id);
+          deviceId = device_id;
+          localStorage.setItem("spotify_device_id", deviceId);
+          transferPlaybackToDevice();
+        });
+
+        // Use single, top-level updateBarFromState
+        player.addListener("player_state_changed", (state) => {
+          if (!state) return;
+          updateBarFromState(state);
+
+          // Start or stop the automatic progress updater
+          if (state.paused) stopProgressUpdater();
+          else startProgressUpdater();
+
+          document.getElementById("playPauseBtn").textContent = state.paused
+            ? "▶️"
+            : "⏸️";
+        });
+
+        player.connect();
+      }
+
+      // ====== PROGRESS BAR & TRACK INFO ======
+      function updateBarFromState(state) {
+        const current = state.track_window.current_track;
+        if (!current) return;
+
+        const cover = current.album.images?.[0]?.url || "";
+        const barCover = document.getElementById("barCover");
+        if (cover) {
+          barCover.src = cover;
+          barCover.style.display = "block"; // make sure it shows
+        } else {
+          barCover.removeAttribute("src");
+          barCover.style.display = "none"; // hide if no cover
+        }
+        document.getElementById("barTrack").textContent = current.name || "—";
+        document.getElementById("barArtist").textContent =
+          current.artists?.[0]?.name || "—";
+
+        currentAlbumUri = current.album.uri;
+
+        const duration = current.duration_ms;
+        totalTimeEl.textContent = formatTime(duration);
+
+        const pos = state.position;
+        currentTimeEl.textContent = formatTime(pos);
+        progressBar.value = Math.min(100, (pos / duration) * 100);
+      }
+
+      progressBar.addEventListener("input", async (e) => {
+        if (!player) return;
+        const percent = e.target.value;
+        const state = await player.getCurrentState();
+        if (!state || !state.track_window.current_track) return;
+        const duration = state.track_window.current_track.duration_ms;
+        const newPos = Math.floor(duration * (percent / 100));
+        player.seek(newPos);
+      });
+
+      // ====== FORMAT TIME ======
+      function formatTime(ms) {
+        const totalSec = Math.floor(ms / 1000);
+        const mins = Math.floor(totalSec / 60);
+        const secs = totalSec % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+      }
+      //Update the progress bar
+      function startProgressUpdater() {
+        if (progressInterval) clearInterval(progressInterval);
+        progressInterval = setInterval(async () => {
+          if (!player) return;
+          const state = await player.getCurrentState();
+          if (!state || !state.track_window.current_track) return;
+
+          const pos = state.position;
+          const duration = state.track_window.current_track.duration_ms;
+          currentTimeEl.textContent = formatTime(pos);
+          totalTimeEl.textContent = formatTime(duration);
+          progressBar.value = Math.min(100, (pos / duration) * 100);
+        }, 500); // updates every 0.5 seconds
+      }
+
+      function stopProgressUpdater() {
+        if (progressInterval) clearInterval(progressInterval);
+      }
+
+      // ====== MODAL ======
+      function showModal() {
+        modalBackdrop.style.display = "flex";
+      }
+      function hideModal() {
+        modalBackdrop.style.display = "none";
+      }
+      async function openAlbumPopup(albumRow, artist, albumTitle) {
+        if (!token) {
+          authenticateSpotify();
+          return;
+        }
+        currentAlbumUri = albumRow.SpotifyURI || null;
+        if (!currentAlbumUri) {
+          alert("No Spotify album URI for this item.");
+          return;
+        }
+
+        modalAlbumName.textContent = albumTitle || "—";
+        modalArtistName.textContent = artist || "—";
+        if (albumRow.CoverURL) modalCover.src = albumRow.CoverURL;
+        else modalCover.removeAttribute("src");
+
+        tracksList.innerHTML = "Loading tracks…";
+        const albumId = uriToId(currentAlbumUri);
+        try {
+          const resp = await fetch(
+            `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const data = await resp.json();
+          const items = data.items || [];
+          if (!items.length) {
+            tracksList.innerHTML =
+              "<div style='color:#bbb'>No tracks found.</div>";
+          } else {
+            tracksList.innerHTML = "";
+            items.forEach((t, idx) => {
+              const div = document.createElement("div");
+              div.className = "track";
+              const mins = Math.floor((t.duration_ms || 0) / 60000);
+              const secs = Math.floor(((t.duration_ms || 0) % 60000) / 1000)
+                .toString()
+                .padStart(2, "0");
+              div.innerHTML = `<div>#${t.track_number || idx + 1} — ${
+                t.name
+              }</div><div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>`;
+              div.onclick = () => startTrackPlayback(currentAlbumUri, t.uri);
+              tracksList.appendChild(div);
+            });
+          }
+        } catch (e) {
+          console.error(e);
+          tracksList.innerHTML =
+            "<div style='color:#f77'>Failed to load tracks</div>";
+        }
+
+        showModal();
+      }
+
+      // ====== PLAYBACK HELPERS ======
+      function uriToId(uri) {
+        if (!uri) return null;
+        if (uri.startsWith("spotify:album:")) return uri.split(":")[2];
+        const match = uri.match(/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
+        if (match) return match[1];
+        return null;
+      }
+      async function startAlbumPlayback(albumUri) {
+        if (!token || !deviceId) return;
+        await fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(
+            deviceId
+          )}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ context_uri: albumUri }),
+          }
+        ).catch((e) => console.error(e));
+      }
+      async function startTrackPlayback(albumUri, trackUri) {
+        if (!token || !deviceId) return;
+        const offset = trackUri ? { uri: trackUri } : undefined;
+        await fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(
+            deviceId
+          )}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ context_uri: albumUri, offset: offset }),
+          }
+        ).catch((e) => console.error(e));
+      }
+
+      // ====== LAYOUT SYNC ======
+      function syncRankMetrics() {
+        const firstAlbum = document.querySelector(".albums-wrapper .album");
+        const rankScroller = document.getElementById("rankScroller");
+        const firstYearTitle = document.querySelector(".year-title");
+        const yearsContainer = document.getElementById("yearsContainer");
+        if (!firstAlbum || !rankScroller || !firstYearTitle || !yearsContainer)
+          return;
+        const albumContentH = firstAlbum.getBoundingClientRect().height;
+        const albumMarginTop = parseFloat(
+          getComputedStyle(firstAlbum).marginTop || "0"
+        );
+        const totalRowH = albumContentH + albumMarginTop;
+        rankScroller.style.setProperty("--row-h", totalRowH + "px");
+        rankScroller.style.gridAutoRows = totalRowH + "px";
+        document.documentElement.style.setProperty("--row-h", totalRowH + "px");
+        const yearTitleH = firstYearTitle.getBoundingClientRect().height;
+        const wrapperMarginTop = parseFloat(
+          getComputedStyle(firstAlbum.parentElement).marginTop || "0"
+        );
+        const rowsOffsetFixed = yearTitleH + wrapperMarginTop;
+        rankScroller.style.paddingTop = rowsOffsetFixed + "px";
+        const yearsRect = yearsContainer.getBoundingClientRect();
+        const firstAlbumRect = firstAlbum.getBoundingClientRect();
+        const rowsOffsetForCSS = firstAlbumRect.top - yearsRect.top;
+        document.documentElement.style.setProperty(
+          "--rows-offset",
+          Math.max(0, rowsOffsetForCSS) + "px"
+        );
+        const totalAlbums = document.querySelectorAll(
+          "#rankScroller .rank-number"
+        ).length;
+        const rowsToCover = Math.min(totalAlbums, 20);
+        const stripeCoverHeight = rowsToCover * totalRowH;
+        document.documentElement.style.setProperty(
+          "--stripe-block",
+          totalRowH * 20 + "px"
+        );
+        document.documentElement.style.setProperty(
+          "--stripe-cover",
+          stripeCoverHeight + "px"
+        );
+      }
+      window.addEventListener(
+        "scroll",
+        () => {
+          const rankScroller = document.getElementById("rankScroller");
+          const offset = parseFloat(rankScroller.dataset.offsetTop || 0);
+          rankScroller.style.transform = `translateY(${
+            offset - window.scrollY
+          }px)`;
+        },
+        { passive: true }
+      );
+      window.addEventListener("resize", syncRankMetrics);
+
+      // ====== PLAYER CONNECT ======
+      async function transferPlaybackToDevice() {
+        try {
+          await fetch("https://api.spotify.com/v1/me/player", {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ device_ids: [deviceId], play: false }),
+          });
+        } catch (e) {
+          console.error("transferPlaybackToDevice", e);
+        }
+      }
+
+      // ====== BOOT ======
+      window.onload = async () => {
+        await handleAuthRedirect(); // only handles redirect after Spotify login
+
+        // Check if already logged in
+        const storedToken = localStorage.getItem("spotify_access_token");
+        if (storedToken) {
+          token = storedToken;
+          const profile = await fetchSpotifyProfile();
+          if (!profile) {
+            // Token exists but profile fetch failed
+            loginBtn.textContent = "Click to login to Spotify";
+          }
+        } else {
+          loginBtn.textContent = "Click to login to Spotify";
+        }
+
+        await fetchAlbums(); // load albums independently of login
+      };
+      /* ===================== NEW FILTER BUTTONS (UPGRADED) ===================== */
+
+      // 1️⃣ Create the buttons (same as before)
+      const header = document.querySelector("header");
+      const decadeButtons = header.querySelectorAll(".decade-btn");
+
+      const countryBtn = document.createElement("button");
+      countryBtn.id = "countryBtn";
+      countryBtn.className = "filter-btn decade-btn";
+      countryBtn.style.background = "silver";
+      countryBtn.textContent = "Artist Country";
+      header.insertBefore(
+        countryBtn,
+        decadeButtons[decadeButtons.length - 1].nextSibling
+      );
+
+      const genreBtn = document.createElement("button");
+      genreBtn.id = "genreBtn";
+      genreBtn.className = "filter-btn decade-btn";
+      genreBtn.style.background = "gold";
+      genreBtn.textContent = "Music Genre";
+      header.insertBefore(genreBtn, countryBtn.nextSibling);
+
+      // 2️⃣ Filter modal (same as before)
+      const filterModalBackdrop = document.createElement("div");
+      filterModalBackdrop.id = "filterModalBackdrop";
+      filterModalBackdrop.className = "modal-backdrop";
+      filterModalBackdrop.innerHTML = `
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="filterModalTitle"></div></div>
+    <div class="filter-list" id="filterList"></div>
+    <div class="modal-actions">
+      <button id="closeFilterModalBtn" class="close-btn">Close</button>
+    </div>
+  </div>
+`;
+      document.body.appendChild(filterModalBackdrop);
+
+      const filterList = document.getElementById("filterList");
+      const filterModalTitle = document.getElementById("filterModalTitle");
+      const closeFilterModalBtn = document.getElementById(
+        "closeFilterModalBtn"
+      );
+
+      closeFilterModalBtn.addEventListener(
+        "click",
+        () => (filterModalBackdrop.style.display = "none")
+      );
+
+      // 3️⃣ Country code → full name
+      const countryNames = {
+        PT: "Portugal",
+        ES: "Spain",
+        FR: "France",
+        DE: "Germany",
+        IT: "Italy",
+        US: "USA",
+        UK: "UK",
+        // add more if needed
+      };
+
+      // 4️⃣ Open filter modal
+      function openFilterModal(column) {
+        filterList.innerHTML = "";
+        filterModalTitle.textContent =
+          column === "Country" ? "Select Artist Country" : "Select Music Genre";
+
+        // Get unique values
+        let values = [
+          ...new Set(albumsData.map((a) => a[column]).filter((v) => v)),
+        ].sort();
+
+        values.forEach((val) => {
+          const displayVal =
+            column === "Country" && countryNames[val] ? countryNames[val] : val;
+
+          const btn = document.createElement("button");
+          btn.className = "filter-btn-item";
+          btn.textContent = displayVal;
+          btn.onclick = () => {
+            applyFilter(column, val);
+            filterModalBackdrop.style.display = "none";
+          };
+          filterList.appendChild(btn);
+        });
+
+        filterModalBackdrop.style.display = "flex";
+      }
+
+      // 5️⃣ Apply filter with shadow highlights
+      function applyFilter(column, value) {
+        const albumDivs = document.querySelectorAll(".albums-wrapper .album");
+
+        // Reset all first
+        albumDivs.forEach((div) => {
+          div.style.transition = "all 0.3s ease";
+          div.style.boxShadow = "";
+          div.style.opacity = "0.3"; // dim non-selected albums
+          div.style.borderRadius = "8px"; // keep corners
+          div.style.transform = "scale(1)";
+        });
+
+        albumsData.forEach((album, index) => {
+          if (album[column] === value) {
+            const div = albumDivs[index];
+            if (div) {
+              div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)"; // thick smooth green glow
+              div.style.opacity = "1"; // full opacity
+              div.style.transform = "scale(1.02)"; // subtle pop
+            }
+          }
+        });
+      }
+
+      // 6️⃣ Event listeners
+      countryBtn.addEventListener("click", () => openFilterModal("Country"));
+      genreBtn.addEventListener("click", () => openFilterModal("Genre(s)"));
+    </script>
+
+    <!-- Move Spotify SDK load to AFTER the main script so the global callback exists when the SDK runs -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
