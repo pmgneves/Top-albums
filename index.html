@@ -1495,11 +1495,12 @@ function openFilterModal(column) {
   filterModalBackdrop.style.display = "flex";
 }
 
-// 5️⃣ Apply filter with shadow highlights
+// 5️⃣ Apply filter with shadow highlights (albums + year-titles)
 function applyFilter(column, value) {
   const albumDivs = Array.from(document.querySelectorAll(".albums-wrapper .album"));
+  const yearTitles = Array.from(document.querySelectorAll(".albums-wrapper .year-title"));
 
-  // Reset all first
+  // Reset albums
   albumDivs.forEach((div) => {
     div.classList.remove("highlighted");
     div.style.transition = "all 0.3s ease";
@@ -1509,55 +1510,54 @@ function applyFilter(column, value) {
     div.style.transform = "scale(1)";
   });
 
+  // Reset years
+  yearTitles.forEach((title) => {
+    title.classList.remove("highlighted");
+    title.style.opacity = "0.3";
+    title.style.transition = "all 0.3s ease";
+  });
+
   const valLower = String(value || "").trim().toLowerCase();
 
-  const matchedKeys = [];    // album["Album-Artist"] strings that matched
-  const matchedDivs = [];    // actual DOM nodes found & highlighted
+  const matchedKeys = [];
+  const matchedDivs = [];
+  const matchedYears = new Set();
 
   albumsData.forEach((album) => {
     let match = false;
 
     if (column === "__GENRES__") {
-      // gather all genres from possible columns, normalize and check
       const allGenres = []
         .concat(
-          String(album["Genre 1"] || "").split(",").map(s => s.trim()),
-          String(album["Genre 2"] || "").split(",").map(s => s.trim()),
-          String(album["Genre(s)"] || "").split(",").map(s => s.trim())
+          String(album["Genre 1"] || "").split(",").map((s) => s.trim()),
+          String(album["Genre 2"] || "").split(",").map((s) => s.trim()),
+          String(album["Genre(s)"] || "").split(",").map((s) => s.trim())
         )
         .filter(Boolean)
-        .map(s => s.toLowerCase());
+        .map((s) => s.toLowerCase());
 
       match = allGenres.includes(valLower);
     } else {
-      // generic column match (Country, etc.) - normalize both sides
       const albumVal = String(album[column] || "").trim().toLowerCase();
       match = albumVal === valLower;
     }
 
     if (match) {
-      // collect the key for debugging/logging
       matchedKeys.push(album["Album-Artist"]);
 
-      // First attempt: find the DOM element with matching data-album-artist
       const keyToFind = String(album["Album-Artist"] || "").trim();
-      let div = albumDivs.find(d => (d.dataset.albumArtist || "").trim() === keyToFind);
+      let div = albumDivs.find((d) => (d.dataset.albumArtist || "").trim() === keyToFind);
 
-      // Fallback: if not found by Album-Artist, try matching by Spotify URI (if available)
       if (!div && album.SpotifyURI) {
         const albumUri = String(album.SpotifyURI).trim();
-        // dataset.spotifyuri holds raw value from render step
-        div = albumDivs.find(d => {
+        div = albumDivs.find((d) => {
           const ds = (d.dataset.spotifyuri || "").trim();
-          if (!ds) return false;
-          // compare either the full URI or the id part:
-          return ds === albumUri || ds.includes(albumUri) || albumUri.includes(ds);
+          return ds && (ds === albumUri || ds.includes(albumUri) || albumUri.includes(ds));
         });
       }
 
-      // Final fallback: try simple text-match on album-info visible text (less reliable)
       if (!div) {
-        div = albumDivs.find(d => {
+        div = albumDivs.find((d) => {
           const info = d.querySelector(".album-info");
           return info && info.textContent && info.textContent.includes(keyToFind);
         });
@@ -1569,20 +1569,37 @@ function applyFilter(column, value) {
         div.style.opacity = "1";
         div.style.transform = "scale(1.02)";
         matchedDivs.push(div);
-      } else {
-        // If we expected a match but didn't find a DOM node, log it for debugging
-        console.warn("Matched in CSV but no DOM found for:", album["Album-Artist"], album.SpotifyURI);
+
+        // ✅ store matched year (find closest year-group and its title)
+        const yearGroup = div.closest(".year-group");
+        if (yearGroup) {
+          const yearTitle = yearGroup.querySelector(".year-title");
+          if (yearTitle) matchedYears.add(yearTitle.textContent.trim());
+        }
       }
     }
   });
 
-  // Debugging output so you can inspect what's matched vs what's actually highlighted:
+  // Apply highlights to year-titles
+  yearTitles.forEach((title) => {
+    if (matchedYears.has(title.textContent.trim())) {
+      title.classList.add("highlighted");
+      title.style.opacity = "1";
+      title.style.textShadow = "0 0 10px rgba(0,255,0,0.7)";
+    } else {
+      title.style.opacity = "0.3";
+      title.style.textShadow = "";
+    }
+  });
+
   console.log("applyFilter — column:", column, "value:", value);
-  console.log("Matched album-artist keys from CSV:", matchedKeys);
-  console.log("DOM elements highlighted (albumArtist dataset):", matchedDivs.map(d => d.dataset.albumArtist));
+  console.log("Matched album-artist keys:", matchedKeys);
+  console.log("Matched years:", Array.from(matchedYears));
+  console.log("DOM albums highlighted:", matchedDivs.map((d) => d.dataset.albumArtist));
 }
 
-// 6️⃣ Clean filters
+
+// 6️⃣ Clean filters (albums + years)
 function clearFilter() {
   const albumDivs = document.querySelectorAll(".albums-wrapper .album");
   albumDivs.forEach((div) => {
@@ -1590,6 +1607,13 @@ function clearFilter() {
     div.style.boxShadow = "";
     div.style.opacity = "1";
     div.style.transform = "scale(1)";
+  });
+
+  const yearTitles = document.querySelectorAll(".albums-wrapper .year-title");
+  yearTitles.forEach((title) => {
+    title.classList.remove("highlighted");
+    title.style.opacity = "1";
+    title.style.textShadow = "";
   });
 }
 
@@ -1618,6 +1642,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
