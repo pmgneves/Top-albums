@@ -833,7 +833,6 @@
             ).map((s) => s.trim());
             const div = document.createElement("div");
 div.className = "album";
-            
 // store unique key so we can locate this DOM element later when filtering
 div.dataset.albumArtist = String(a["Album-Artist"] || "").trim();
             
@@ -1577,11 +1576,6 @@ function applyFilter(column, value) {
 }
 
 
-  console.log("applyFilter — column:", column, "value:", value);
-  console.log("Matched album-artist keys:", matchedKeys);
-  console.log("Matched years:", Array.from(matchedYears));
-  console.log("DOM albums highlighted:", matchedDivs.map((d) => d.dataset.albumArtist));
-}
 
 
 // 6️⃣ Clean filters (albums + years)
@@ -1594,7 +1588,7 @@ function clearFilter() {
     div.style.transform = "scale(1)";
   });
 
-  const yearTitles = document.querySelectorAll(".albums-wrapper .year-title");
+  const yearTitles = document.querySelectorAll("#yearsContainer .year-title");
   yearTitles.forEach((title) => {
     title.classList.remove("highlighted");
     title.style.opacity = "1";
@@ -1627,6 +1621,8 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
+
 
 
 
