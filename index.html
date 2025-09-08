@@ -1047,29 +1047,8 @@ document.addEventListener("keydown", window._closeTopmostPopupHandler);
 
 
 // Attach the keydown listener.
-// Put this after your modal elements exist (e.g. at bottom of your main script).
-document.addEventListener("keydown", (e) => {
-  // Only react to Escape
-  if (e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
 
-  // If user is typing in an input/textarea/contenteditable, ignore Escape (optional)
-  const active = document.activeElement;
-  if (active) {
-    const tag = active.tagName;
-    if (
-      tag === "INPUT" ||
-      tag === "TEXTAREA" ||
-      active.isContentEditable
-    ) {
-      // Let Esc behave normally inside input (e.g. clear autocomplete), do not close modals
-      return;
-    }
-  }
-
-  // Close popups
-  closeAllPopups();
-});
-
+    
 
 
     // 7️⃣ Event listeners
@@ -1090,9 +1069,18 @@ document.addEventListener("keydown", (e) => {
       // Otherwise, clear highlights
       clearFilter();
     });
+    document.removeEventListener("keydown", window._closeTopmostPopupHandler);
+window._closeTopmostPopupHandler = closeTopmostPopupOnEsc;
+document.addEventListener("keydown", window._closeTopmostPopupHandler);
 
-    filterResultsModalBackdrop.addEventListener("click", (e) => {
+   filterResultsModalBackdrop.addEventListener("click", (e) => {
   if (e.target === filterResultsModalBackdrop) {
+    // Optional: also reset filter scroll
+    const results = document.getElementById("filterResultsContainer");
+    if (results) {
+      results.scrollTop = 0;
+      results.scrollLeft = 0;
+    }
     filterResultsModalBackdrop.style.display = "none";
   }
 });
@@ -1102,4 +1090,5 @@ document.addEventListener("keydown", (e) => {
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </body>
 </html>
+
 
