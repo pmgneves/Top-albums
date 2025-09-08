@@ -833,7 +833,9 @@
             ).map((s) => s.trim());
             const div = document.createElement("div");
 div.className = "album";
-
+// store unique key so we can locate this DOM element later when filtering
+div.dataset.albumArtist = String(a["Album-Artist"] || "").trim();
+            
 // attach identifying data attributes so we can reliably find the right DOM node later
 div.dataset.albumArtist = (a["Album-Artist"] || "").trim();
 div.dataset.spotifyuri = (a.SpotifyURI || "").trim();
@@ -1500,7 +1502,7 @@ function applyFilter(column, value) {
   const albumDivs = document.querySelectorAll(".albums-wrapper .album");
   const yearTitles = document.querySelectorAll("#yearsContainer .year-title");
 
-  // Reset albums
+  // Reset all album visuals
   albumDivs.forEach((div) => {
     div.classList.remove("highlighted");
     div.style.transition = "all 0.3s ease";
@@ -1510,7 +1512,7 @@ function applyFilter(column, value) {
     div.style.transform = "scale(1)";
   });
 
-  // Reset years
+  // Reset year titles visuals
   yearTitles.forEach((title) => {
     title.classList.remove("highlighted");
     title.style.opacity = "0.3";
@@ -1520,7 +1522,7 @@ function applyFilter(column, value) {
   const valLower = String(value).toLowerCase();
   const matchedYears = new Set();
 
-  albumsData.forEach((album, index) => {
+  albumsData.forEach((album) => {
     let match = false;
 
     if (column === "__GENRES__") {
@@ -1535,34 +1537,44 @@ function applyFilter(column, value) {
 
       match = allGenres.includes(valLower);
     } else {
+      // direct equality for Country, Year, etc. (value is taken from openFilterModal)
       match = album[column] === value;
     }
 
     if (match) {
-      const div = albumDivs[index];
+      // locate DOM element by the Album-Artist unique key (normalized)
+      const albumKey = String(album["Album-Artist"] || "").trim().toLowerCase();
+      const div = Array.from(albumDivs).find(
+        (d) => String(d.dataset.albumArtist || "").trim().toLowerCase() === albumKey
+      );
+
       if (div) {
         div.classList.add("highlighted");
         div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
         div.style.opacity = "1";
         div.style.transform = "scale(1.02)";
 
-        // 🔑 Highlight the year title dynamically
-        const yearColumn = div.closest(".year-column");
-        if (yearColumn) {
-          const yearTitle = yearColumn.querySelector(".year-title");
+        // find the year-title for this album (walk up to .year-column)
+        const yearCol = div.closest(".year-column");
+        if (yearCol) {
+          const yearTitle = yearCol.querySelector(".year-title");
           if (yearTitle) matchedYears.add(yearTitle);
         }
+      } else {
+        // helpful debug if something in the CSV doesn't match any DOM element
+        // console.warn("No DOM album found for", album["Album-Artist"]);
       }
     }
   });
 
-  // Highlight matched years
+  // Highlight all matched year-titles
   matchedYears.forEach((title) => {
     title.classList.add("highlighted");
     title.style.opacity = "1";
     title.style.textShadow = "0 0 10px rgba(0,255,0,0.7)";
   });
 }
+
 
 
 
@@ -1609,6 +1621,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
