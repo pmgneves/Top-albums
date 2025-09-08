@@ -713,7 +713,7 @@
         </div>
       </div>
     </div>
-    <div class="album" data-spotifyuri="7AztWWBX82cp2yrqajfddM"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
     <script>
@@ -1383,7 +1383,7 @@ closeFilterModalBtn.addEventListener(
 
 // 3️⃣ Country code → full name
 const countryNames = {
-PT: "Portugal",
+ PT: "Portugal",
 ES: "Spain",
 FR: "France",
 DE: "Germany",
@@ -1500,7 +1500,7 @@ function applyFilter(column, value) {
 
   const valLower = String(value).toLowerCase();
 
-  albumsData.forEach((album) => {
+  albumsData.forEach((album, index) => {
     let match = false;
 
     if (column === "__GENRES__") {
@@ -1525,10 +1525,7 @@ function applyFilter(column, value) {
     }
 
     if (match) {
-      // Find the DOM element by SpotifyURI
-      const div = Array.from(albumDivs).find(
-        (d) => d.dataset.spotifyuri === album["SpotifyURI"]
-      );
+      const div = albumDivs[index];
       if (div) {
         div.classList.add("highlighted");
         div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
@@ -1538,7 +1535,6 @@ function applyFilter(column, value) {
     }
   });
 }
-
 
 // 6️⃣ Clean filters
 function clearFilter() {
@@ -1576,10 +1572,5 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
-
-
-
-
-
 
 
