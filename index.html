@@ -713,7 +713,7 @@
         </div>
       </div>
     </div>
-
+    <div class="album" data-spotifyuri="7AztWWBX82cp2yrqajfddM"></div>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
     <script>
@@ -1488,7 +1488,7 @@ function openFilterModal(column) {
 function applyFilter(column, value) {
   const albumDivs = document.querySelectorAll(".albums-wrapper .album");
 
-  // Reset all albums
+  // Reset all first
   albumDivs.forEach((div) => {
     div.classList.remove("highlighted");
     div.style.transition = "all 0.3s ease";
@@ -1498,33 +1498,37 @@ function applyFilter(column, value) {
     div.style.transform = "scale(1)";
   });
 
-  const valLower = String(value).trim().toLowerCase();
+  const valLower = String(value).toLowerCase();
 
-  albumsData.forEach((album, index) => {
+  albumsData.forEach((album) => {
     let match = false;
 
     if (column === "__GENRES__") {
-      // Collect all genres from the album
-      const allGenres = ["Genre 1", "Genre 2", "Genre(s)"]
-        .map((key) => (album[key] || ""))
-        .flatMap((str) => str.split(",").map((s) => s.trim()))
+      const allGenres = []
+        .concat(
+          String(album["Genre 1"] || "")
+            .split(",")
+            .map((s) => s.trim()),
+          String(album["Genre 2"] || "")
+            .split(",")
+            .map((s) => s.trim()),
+          String(album["Genre(s)"] || "")
+            .split(",")
+            .map((s) => s.trim())
+        )
         .filter(Boolean)
         .map((s) => s.toLowerCase());
 
       match = allGenres.includes(valLower);
-
-    } else if (column === "Country") {
-      // Compare country codes (database has codes, filter may show full names)
-      match = String(album[column] || "").trim().toLowerCase() === valLower;
-
     } else {
-      // Default strict match for other columns
-      match = String(album[column] || "").trim().toLowerCase() === valLower;
+      match = album[column] === value;
     }
 
-    // Highlight matching albums
     if (match) {
-      const div = albumDivs[index];
+      // Find the DOM element by SpotifyURI
+      const div = Array.from(albumDivs).find(
+        (d) => d.dataset.spotifyuri === album["SpotifyURI"]
+      );
       if (div) {
         div.classList.add("highlighted");
         div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
@@ -1534,6 +1538,7 @@ function applyFilter(column, value) {
     }
   });
 }
+
 
 // 6️⃣ Clean filters
 function clearFilter() {
@@ -1571,6 +1576,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
