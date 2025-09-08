@@ -832,7 +832,18 @@
               a["Album-Artist"]?.split(" - ") || ["Unknown", "Unknown"]
             ).map((s) => s.trim());
             const div = document.createElement("div");
-            div.className = "album";
+div.className = "album";
+
+// attach identifying data attributes so we can reliably find the right DOM node later
+div.dataset.albumArtist = (a["Album-Artist"] || "").trim();
+div.dataset.spotifyuri = (a.SpotifyURI || "").trim();
+div.dataset.country = (a["Country"] || "").trim();
+// optional: store joined genres for quick debugging
+div.dataset.genres = [a["Genre 1"], a["Genre 2"], a["Genre(s)"]]
+  .filter(Boolean)
+  .map(s => String(s).trim())
+  .join(",");
+
 
             const infoDiv = document.createElement("div");
             infoDiv.className = "album-info";
@@ -1485,9 +1496,8 @@ function openFilterModal(column) {
 }
 
 // 5️⃣ Apply filter with shadow highlights
-// 5️⃣ Apply filter with shadow highlights
 function applyFilter(column, value) {
-  const albumDivs = document.querySelectorAll(".albums-wrapper .album");
+  const albumDivs = Array.from(document.querySelectorAll(".albums-wrapper .album"));
 
   // Reset all first
   albumDivs.forEach((div) => {
@@ -1499,47 +1509,78 @@ function applyFilter(column, value) {
     div.style.transform = "scale(1)";
   });
 
-  const valLower = String(value).toLowerCase();
-  const matchedKeys = []; // store Album-Artist keys
+  const valLower = String(value || "").trim().toLowerCase();
+
+  const matchedKeys = [];    // album["Album-Artist"] strings that matched
+  const matchedDivs = [];    // actual DOM nodes found & highlighted
 
   albumsData.forEach((album) => {
     let match = false;
 
     if (column === "__GENRES__") {
+      // gather all genres from possible columns, normalize and check
       const allGenres = []
         .concat(
-          String(album["Genre 1"] || "").split(",").map((s) => s.trim()),
-          String(album["Genre 2"] || "").split(",").map((s) => s.trim()),
-          String(album["Genre(s)"] || "").split(",").map((s) => s.trim())
+          String(album["Genre 1"] || "").split(",").map(s => s.trim()),
+          String(album["Genre 2"] || "").split(",").map(s => s.trim()),
+          String(album["Genre(s)"] || "").split(",").map(s => s.trim())
         )
         .filter(Boolean)
-        .map((s) => s.toLowerCase());
+        .map(s => s.toLowerCase());
 
       match = allGenres.includes(valLower);
     } else {
-      match = album[column] === value;
+      // generic column match (Country, etc.) - normalize both sides
+      const albumVal = String(album[column] || "").trim().toLowerCase();
+      match = albumVal === valLower;
     }
 
     if (match) {
-      matchedKeys.push(album["Album-Artist"]); // collect unique key
-      // Find the DOM element by matching Album-Artist
-      const div = Array.from(albumDivs).find(
-        (d) => d.dataset.albumArtist === album["Album-Artist"]
-      );
+      // collect the key for debugging/logging
+      matchedKeys.push(album["Album-Artist"]);
+
+      // First attempt: find the DOM element with matching data-album-artist
+      const keyToFind = String(album["Album-Artist"] || "").trim();
+      let div = albumDivs.find(d => (d.dataset.albumArtist || "").trim() === keyToFind);
+
+      // Fallback: if not found by Album-Artist, try matching by Spotify URI (if available)
+      if (!div && album.SpotifyURI) {
+        const albumUri = String(album.SpotifyURI).trim();
+        // dataset.spotifyuri holds raw value from render step
+        div = albumDivs.find(d => {
+          const ds = (d.dataset.spotifyuri || "").trim();
+          if (!ds) return false;
+          // compare either the full URI or the id part:
+          return ds === albumUri || ds.includes(albumUri) || albumUri.includes(ds);
+        });
+      }
+
+      // Final fallback: try simple text-match on album-info visible text (less reliable)
+      if (!div) {
+        div = albumDivs.find(d => {
+          const info = d.querySelector(".album-info");
+          return info && info.textContent && info.textContent.includes(keyToFind);
+        });
+      }
 
       if (div) {
         div.classList.add("highlighted");
         div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
         div.style.opacity = "1";
         div.style.transform = "scale(1.02)";
+        matchedDivs.push(div);
+      } else {
+        // If we expected a match but didn't find a DOM node, log it for debugging
+        console.warn("Matched in CSV but no DOM found for:", album["Album-Artist"], album.SpotifyURI);
       }
     }
   });
 
-  console.log("Matched album keys:", matchedKeys);
+  // Debugging output so you can inspect what's matched vs what's actually highlighted:
+  console.log("applyFilter — column:", column, "value:", value);
+  console.log("Matched album-artist keys from CSV:", matchedKeys);
+  console.log("DOM elements highlighted (albumArtist dataset):", matchedDivs.map(d => d.dataset.albumArtist));
 }
-
-
 
 // 6️⃣ Clean filters
 function clearFilter() {
@@ -1577,6 +1618,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
