@@ -225,3 +225,14 @@
   margin-top: 0;
   padding-top: 0;
 }
+
+/* Ensure album details modal sits above the filter-results modal but below the player bar */
+#albumModalBackdrop {
+  z-index: 995; /* above filterResultsModalBackdrop (900) but below player-bar (1000) */
+}
+
+/* Ensure the inner album modal content is above the filter modal content too */
+#albumModalBackdrop .modal {
+  z-index: 996;
+  position: relative; /* keep normal flow inside the backdrop */
+}
