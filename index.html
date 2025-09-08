@@ -976,31 +976,75 @@
 // -------------------------
 // Close popups on Escape key
 // -------------------------
-function closeAllPopups() {
-  // IDs used in your project:
+// Close only the topmost visible popup when pressing Escape
+function closeTopmostPopupOnEsc(e) {
+  // Only act on Escape
+  if (e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
+
+  // If user is typing in an input/textarea/contenteditable, ignore Esc
+  const active = document.activeElement;
+  if (active) {
+    const tag = active.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || active.isContentEditable) return;
+  }
+
+  // Candidate backdrops (ordered by expected stacking importance, but we'll compare z-index)
   const ids = [
-    "albumModalBackdrop",        // album details modal
-    "filterModalBackdrop",       // filter chooser (country/genre) modal
-    "filterResultsModalBackdrop" // filtered-albums results modal
+    "albumModalBackdrop",
+    "filterResultsModalBackdrop",
+    "filterModalBackdrop",
+    // add any other modal-backdrop IDs you use here
   ];
 
-  ids.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.style.display = "none";
-    }
+  // Collect visible/backdrop elements with their numeric z-index
+  const visible = ids
+    .map((id) => document.getElementById(id))
+    .filter(Boolean)
+    .map((el) => {
+      const style = getComputedStyle(el);
+      const isVisible = style.display !== "none" && style.visibility !== "hidden" && el.offsetParent !== null;
+      const z = parseInt(style.zIndex, 10);
+      return { el, isVisible, z: Number.isFinite(z) ? z : 0 };
+    })
+    .filter((o) => o.isVisible);
+
+  if (visible.length === 0) return; // nothing open
+
+  // Find the element with the highest z-index; if tie, pick the one later in the array (higher precedence)
+  visible.sort((a, b) => {
+    if (a.z === b.z) return 0;
+    return a.z - b.z;
   });
+  const top = visible[visible.length - 1].el;
 
-  // If you have a clearFilter() helper (recommended), call it to reset UI state.
-  if (typeof clearFilter === "function") clearFilter();
+  // Hide only the topmost popup
+  top.style.display = "none";
 
-  // Optional: reset scroll on results container so it opens predictably next time
+  // Optional cleanup behaviour per popup type:
+  if (top.id === "filterResultsModalBackdrop") {
+    // If you want to clear highlights or reset filter UI when closing results:
+    if (typeof clearFilter === "function") clearFilter();
+  }
+
+  // If the album modal was closed, optionally tidy the modal internals:
+  if (top.id === "albumModalBackdrop") {
+    const tracksList = document.getElementById("tracksList");
+    if (tracksList) tracksList.innerHTML = ""; // clear loaded tracks (optional)
+  }
+
+  // Reset scroll for filter results so it opens in consistent state next time
   const results = document.getElementById("filterResultsContainer");
   if (results) {
     results.scrollTop = 0;
     results.scrollLeft = 0;
   }
 }
+
+// Remove any older listener you added and add the new one
+document.removeEventListener("keydown", window._closeTopmostPopupHandler);
+window._closeTopmostPopupHandler = closeTopmostPopupOnEsc;
+document.addEventListener("keydown", window._closeTopmostPopupHandler);
+
 
 // Attach the keydown listener.
 // Put this after your modal elements exist (e.g. at bottom of your main script).
