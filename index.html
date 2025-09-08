@@ -1500,6 +1500,8 @@ function applyFilter(column, value) {
 
   const valLower = String(value).toLowerCase();
 
+  const matchedIds = []; // <-- new array to store matched album IDs
+
   albumsData.forEach((album, index) => {
     let match = false;
 
@@ -1525,6 +1527,7 @@ function applyFilter(column, value) {
     }
 
     if (match) {
+      matchedIds.push(album.id); // <-- store the album ID
       const div = albumDivs[index];
       if (div) {
         div.classList.add("highlighted");
@@ -1534,7 +1537,11 @@ function applyFilter(column, value) {
       }
     }
   });
+
+  // Print all matched album IDs in the console
+  console.log("Matched album IDs:", matchedIds);
 }
+
 
 // 6️⃣ Clean filters
 function clearFilter() {
@@ -1572,5 +1579,6 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
