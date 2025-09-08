@@ -1485,6 +1485,7 @@ function openFilterModal(column) {
 }
 
 // 5️⃣ Apply filter with shadow highlights
+// 5️⃣ Apply filter with shadow highlights
 function applyFilter(column, value) {
   const albumDivs = document.querySelectorAll(".albums-wrapper .album");
 
@@ -1499,24 +1500,17 @@ function applyFilter(column, value) {
   });
 
   const valLower = String(value).toLowerCase();
+  const matchedKeys = []; // store Album-Artist keys
 
-  const matchedIds = []; // <-- new array to store matched album IDs
-
-  albumsData.forEach((album, index) => {
+  albumsData.forEach((album) => {
     let match = false;
 
     if (column === "__GENRES__") {
       const allGenres = []
         .concat(
-          String(album["Genre 1"] || "")
-            .split(",")
-            .map((s) => s.trim()),
-          String(album["Genre 2"] || "")
-            .split(",")
-            .map((s) => s.trim()),
-          String(album["Genre(s)"] || "")
-            .split(",")
-            .map((s) => s.trim())
+          String(album["Genre 1"] || "").split(",").map((s) => s.trim()),
+          String(album["Genre 2"] || "").split(",").map((s) => s.trim()),
+          String(album["Genre(s)"] || "").split(",").map((s) => s.trim())
         )
         .filter(Boolean)
         .map((s) => s.toLowerCase());
@@ -1527,8 +1521,12 @@ function applyFilter(column, value) {
     }
 
     if (match) {
-      matchedIds.push(album.id); // <-- store the album ID
-      const div = albumDivs[index];
+      matchedKeys.push(album["Album-Artist"]); // collect unique key
+      // Find the DOM element by matching Album-Artist
+      const div = Array.from(albumDivs).find(
+        (d) => d.dataset.albumArtist === album["Album-Artist"]
+      );
+
       if (div) {
         div.classList.add("highlighted");
         div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
@@ -1538,9 +1536,9 @@ function applyFilter(column, value) {
     }
   });
 
-  // Print all matched album IDs in the console
-  console.log("Matched album IDs:", matchedIds);
+  console.log("Matched album keys:", matchedKeys);
 }
+
 
 
 // 6️⃣ Clean filters
@@ -1579,6 +1577,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
