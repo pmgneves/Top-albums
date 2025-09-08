@@ -1503,26 +1503,27 @@ function applyFilter(column, value) {
   albumsData.forEach((album, index) => {
     let match = false;
 
-    if (column === "__GENRES__") {
-      const allGenres = []
-        .concat(
-          String(album["Genre 1"] || "")
-            .split(",")
-            .map((s) => s.trim()),
-          String(album["Genre 2"] || "")
-            .split(",")
-            .map((s) => s.trim()),
-          String(album["Genre(s)"] || "")
-            .split(",")
-            .map((s) => s.trim())
-        )
-        .filter(Boolean)
-        .map((s) => s.toLowerCase());
+   if (column === "__GENRES__") {
+  const allGenres = []
+    .concat(
+      String(album["Genre 1"] || "")
+        .split(",")
+        .map((s) => s.trim()),
+      String(album["Genre 2"] || "")
+        .split(",")
+        .map((s) => s.trim()),
+      String(album["Genre(s)"] || "")
+        .split(",")
+        .map((s) => s.trim())
+    )
+    .filter(Boolean)
+    .map((s) => s.toLowerCase());
 
-      match = allGenres.includes(valLower);
-    } else {
-      match = album[column] === value;
-    }
+  match = allGenres.includes(valLower);
+} else {
+  // Normalize country codes (trim + lowercase) to prevent mismatches
+  match = String(album[column] || "").trim().toLowerCase() === String(value).trim().toLowerCase();
+}
 
     if (match) {
       const div = albumDivs[index];
@@ -1572,6 +1573,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
