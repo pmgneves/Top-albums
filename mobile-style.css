@@ -1,0 +1,178 @@
+
+
+      /* ----------------------------------------------- Section for small screens (Mobile) ------------------------------------------ */
+      @media (max-width: 600px) {
+        /* --- Header adjustments --- */
+        header {
+          left: 0;
+          right: 0;
+          flex-wrap: wrap; /* allow header items to wrap to next line on small screens */
+          height: auto; /* height adapts if items wrap */
+          padding: 8px 12px; /* reduce padding for smaller screens */
+        }
+
+        .site-title {
+          flex: 1 1 100%; /* allow title to take full width if needed */
+          max-width: 100%; /* ensure title doesn't exceed container width */
+          font-size: clamp(
+            16px,
+            4vw,
+            20px
+          ); /* responsive font size between 16px and 20px */
+          white-space: nowrap; /* prevent wrapping */
+          overflow: hidden; /* hide overflowed text */
+          text-overflow: ellipsis; /* show "..." when text overflows */
+        }
+
+        .decade-btn {
+          flex: 1 1 auto; /* buttons shrink evenly to fit available space */
+          font-size: 12px; /* smaller font for mobile */
+          padding: 4px 6px; /* smaller padding for compact layout */
+          margin: 2px 0; /* vertical spacing between wrapped buttons */
+        }
+
+        .login-btn {
+          flex: 1 1 auto; /* allow login button to shrink if needed */
+          font-size: 12px; /* smaller font size for mobile */
+          padding: 4px 6px; /* smaller padding */
+        }
+
+        .spacer {
+          display: none;
+        } /* remove spacer on small screens to save space */
+
+        /* --- Main container adjustments --- */
+        .main-container {
+          display: flex; /* maintain horizontal layout for rank + years */
+          flex-direction: row; /* ensure row direction */
+          overflow: visible; /* was: overflow-x: auto; */
+          margin-top: calc(50px + 8px); /* leave space for header height */
+        }
+
+        /* --- Rank column adjustments --- */
+        .rank-column {
+          position: fixed; /* keep rank column fixed on left */
+          left: 0; /* stick to left edge */
+          top: calc(50px + 8px); /* position below header */
+          width: 30px; /* keep narrow column width */
+          height: calc(
+            100vh - 50px - 8px - 72px
+          ); /* full height minus header + player bar */
+          z-index: 50; /* stay above albums */
+        }
+
+        /* --- Years container adjustments --- */
+        .years-container {
+          flex: 1 1 auto;
+          display: flex;
+          overflow-x: auto; /* already correct */
+          overflow-y: visible; /* NEW: allows sticky to work */
+          padding-left: 40px;
+          gap: 12px;
+          position: relative;
+        }
+
+        .year-title {
+          position: -webkit-sticky; /* Safari/iOS */
+          position: sticky; /* ensure stickiness applies on mobile */
+          top: calc(50px + 8px); /* matches your mobile header offset */
+          z-index: 12;
+          background: #111; /* avoids translucent overlap while sticking */
+        }
+
+        .year-column {
+          flex: 0 0 140px; /* set fixed width for year column */
+          min-width: 120px; /* prevent columns from shrinking too much */
+        }
+
+        /* --- Album adjustments --- */
+        .album img,
+        .album .no-cover {
+          height: 140px; /* reduce album image height for mobile */
+        }
+
+        .album-info {
+          font-size: 12px; /* smaller text for album info */
+          height: 60px; /* reduce height to fit smaller screens */
+        }
+
+        /* --- Modal adjustments --- */
+        .modal {
+          width: 95%; /* almost full width on mobile */
+          max-width: 480px; /* limit maximum width */
+        }
+
+        /* --- Bottom player bar adjustments --- */
+        .player-bar {
+          left: 30px; /* start after rank column */
+          right: 0; /* stretch fully to the right edge */
+          width: auto; /* let left + right define the width (no calc needed) */
+          transform: none; /* remove centering transform */
+          max-width: none; /* allow full width on mobile */
+          height: 60px; /* reduce height for smaller screens */
+          border-radius: 8px 8px 0 0; /* rounded top corners only */
+          padding: 0 8px; /* reduce horizontal padding */
+        }
+
+        .controls {
+          gap: 8px; /* reduce gap between control buttons */
+        }
+
+        .ctrl-btn {
+          width: 32px; /* smaller circular buttons */
+          height: 32px; /* smaller circular buttons */
+          font-size: 14px; /* smaller icons/text */
+        }
+
+        .track-info img {
+          width: 40px; /* smaller album cover in player bar */
+          height: 40px; /* maintain square aspect ratio */
+        }
+
+        .track-name {
+          font-size: 12px;
+        } /* smaller track name text */
+        .track-artist {
+          font-size: 10px;
+        } /* smaller artist name text */
+
+        /* --- Mobile progress bar adjustments --- */
+        .progress-container {
+          display: flex; /* align items horizontally */
+          align-items: center; /* vertical alignment */
+          gap: 6px; /* spacing between currentTime, bar, totalTime */
+          width: calc(
+            100% - 16px
+          ); /* leave 8px padding on each side inside player-bar */
+          max-width: 100%; /* prevent overflow */
+        }
+
+        #progressBar {
+          flex: 1; /* fill available space in container */
+          -webkit-appearance: none; /* remove default styling */
+          height: 3px; /* thinner progress bar on mobile */
+          background: #535353;
+          border-radius: 2px;
+          cursor: pointer;
+          width: 100%; /* fill container exactly */
+        }
+
+        #progressBar::-webkit-slider-thumb,
+        #progressBar::-moz-range-thumb {
+          width: 10px; /* smaller slider thumb for mobile */
+          height: 10px; /* smaller slider thumb for mobile */
+          border-radius: 50%;
+          background: #fff;
+          cursor: pointer;
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+        }
+
+        #currentTime,
+        #totalTime {
+          font-size: 10px; /* keep small on mobile */
+          color: #ccc;
+          width: 28px;
+          text-align: center;
+        }
+      }
+      /* ----------------------------------------------- End of Section for small screens (Mobile) ------------------------------------------ */
