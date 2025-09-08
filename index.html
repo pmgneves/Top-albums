@@ -1497,8 +1497,8 @@ function openFilterModal(column) {
 
 // 5️⃣ Apply filter with shadow highlights (albums + year-titles)
 function applyFilter(column, value) {
-  const albumDivs = Array.from(document.querySelectorAll(".albums-wrapper .album"));
-  const yearTitles = Array.from(document.querySelectorAll(".albums-wrapper .year-title"));
+  const albumDivs = document.querySelectorAll(".albums-wrapper .album");
+  const yearTitles = document.querySelectorAll("#yearsContainer .year-title");
 
   // Reset albums
   albumDivs.forEach((div) => {
@@ -1514,16 +1514,13 @@ function applyFilter(column, value) {
   yearTitles.forEach((title) => {
     title.classList.remove("highlighted");
     title.style.opacity = "0.3";
-    title.style.transition = "all 0.3s ease";
+    title.style.textShadow = "";
   });
 
-  const valLower = String(value || "").trim().toLowerCase();
-
-  const matchedKeys = [];
-  const matchedDivs = [];
+  const valLower = String(value).toLowerCase();
   const matchedYears = new Set();
 
-  albumsData.forEach((album) => {
+  albumsData.forEach((album, index) => {
     let match = false;
 
     if (column === "__GENRES__") {
@@ -1538,65 +1535,35 @@ function applyFilter(column, value) {
 
       match = allGenres.includes(valLower);
     } else {
-      const albumVal = String(album[column] || "").trim().toLowerCase();
-      match = albumVal === valLower;
+      match = album[column] === value;
     }
 
     if (match) {
-      matchedKeys.push(album["Album-Artist"]);
-
-      const keyToFind = String(album["Album-Artist"] || "").trim();
-      let div = albumDivs.find((d) => (d.dataset.albumArtist || "").trim() === keyToFind);
-
-      if (!div && album.SpotifyURI) {
-        const albumUri = String(album.SpotifyURI).trim();
-        div = albumDivs.find((d) => {
-          const ds = (d.dataset.spotifyuri || "").trim();
-          return ds && (ds === albumUri || ds.includes(albumUri) || albumUri.includes(ds));
-        });
-      }
-
-      if (!div) {
-        div = albumDivs.find((d) => {
-          const info = d.querySelector(".album-info");
-          return info && info.textContent && info.textContent.includes(keyToFind);
-        });
-      }
-
+      const div = albumDivs[index];
       if (div) {
         div.classList.add("highlighted");
         div.style.boxShadow = "0 0 20px 5px rgba(0,255,0,0.7)";
         div.style.opacity = "1";
         div.style.transform = "scale(1.02)";
-        matchedDivs.push(div);
 
-        // ✅ store matched year (find closest year-group and its title)
-        const yearGroup = div.closest(".year-group");
-        if (yearGroup) {
-          const yearTitle = yearGroup.querySelector(".year-title");
-          if (yearTitle) matchedYears.add(yearTitle.textContent.trim());
+        // 🔑 Highlight the year title dynamically
+        const yearColumn = div.closest(".year-column");
+        if (yearColumn) {
+          const yearTitle = yearColumn.querySelector(".year-title");
+          if (yearTitle) matchedYears.add(yearTitle);
         }
       }
     }
   });
 
-  // Apply highlights to year-titles
-  yearTitles.forEach((title) => {
-    if (matchedYears.has(title.textContent.trim())) {
-      title.classList.add("highlighted");
-      title.style.opacity = "1";
-      title.style.textShadow = "0 0 10px rgba(0,255,0,0.7)";
-    } else {
-      title.style.opacity = "0.3";
-      title.style.textShadow = "";
-    }
+  // Highlight matched years
+  matchedYears.forEach((title) => {
+    title.classList.add("highlighted");
+    title.style.opacity = "1";
+    title.style.textShadow = "0 0 10px rgba(0,255,0,0.7)";
   });
-
-  console.log("applyFilter — column:", column, "value:", value);
-  console.log("Matched album-artist keys:", matchedKeys);
-  console.log("Matched years:", Array.from(matchedYears));
-  console.log("DOM albums highlighted:", matchedDivs.map((d) => d.dataset.albumArtist));
 }
+
 
 
 // 6️⃣ Clean filters (albums + years)
@@ -1642,6 +1609,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
