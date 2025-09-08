@@ -972,31 +972,25 @@
 
       filterModalBackdrop.style.display = "flex";
     }
-// 5.  Control pop-ups with keyboard
-// -------------------------
-// Close popups on Escape key
+// 5. Control pop-ups with keyboard
 // -------------------------
 // Close only the topmost visible popup when pressing Escape
 function closeTopmostPopupOnEsc(e) {
   // Only act on Escape
   if (e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
 
-  // If user is typing in an input/textarea/contenteditable, ignore Esc
+  // Ignore typing in input/textarea/contenteditable
   const active = document.activeElement;
-  if (active) {
-    const tag = active.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || active.isContentEditable) return;
-  }
+  if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
 
-  // Candidate backdrops (ordered by expected stacking importance, but we'll compare z-index)
+  // Candidate backdrops (ordered by expected stacking)
   const ids = [
     "albumModalBackdrop",
     "filterResultsModalBackdrop",
     "filterModalBackdrop",
-    // add any other modal-backdrop IDs you use here
   ];
 
-  // Collect visible/backdrop elements with their numeric z-index
+  // Collect visible elements with their numeric z-index
   const visible = ids
     .map((id) => document.getElementById(id))
     .filter(Boolean)
@@ -1010,78 +1004,61 @@ function closeTopmostPopupOnEsc(e) {
 
   if (visible.length === 0) return; // nothing open
 
-  // Find the element with the highest z-index; if tie, pick the one later in the array (higher precedence)
-  visible.sort((a, b) => {
-    if (a.z === b.z) return 0;
-    return a.z - b.z;
-  });
+  // Find the element with the highest z-index
+  visible.sort((a, b) => a.z - b.z);
   const top = visible[visible.length - 1].el;
 
   // Hide only the topmost popup
   top.style.display = "none";
 
-  // Optional cleanup behaviour per popup type:
+  // Optional cleanup per popup type
   if (top.id === "filterResultsModalBackdrop") {
-    // If you want to clear highlights or reset filter UI when closing results:
-    if (typeof clearFilter === "function") clearFilter();
-  }
-
-  // If the album modal was closed, optionally tidy the modal internals:
-  if (top.id === "albumModalBackdrop") {
-    const tracksList = document.getElementById("tracksList");
-    if (tracksList) tracksList.innerHTML = ""; // clear loaded tracks (optional)
-  }
-
-  // Reset scroll for filter results so it opens in consistent state next time
-  const results = document.getElementById("filterResultsContainer");
-  if (results) {
-    results.scrollTop = 0;
-    results.scrollLeft = 0;
-  }
-}
-
-// Remove any older listener you added and add the new one
-document.removeEventListener("keydown", window._closeTopmostPopupHandler);
-window._closeTopmostPopupHandler = closeTopmostPopupOnEsc;
-document.addEventListener("keydown", window._closeTopmostPopupHandler);
-
-
-// Attach the keydown listener.
-
-    
-
-
-    // 7️⃣ Event listeners
-    countryBtn.addEventListener("click", () => openFilterModal("Country"));
-    genreBtn.addEventListener("click", () => openFilterModal("__GENRES__"));
-
-    document.addEventListener("click", (e) => {
-      // If click is inside a highlighted album, do nothing
-      if (e.target.closest(".albums-wrapper .album.highlighted")) return;
-
-      // If click is inside the filter modal or on the filter buttons, do nothing
-      if (
-        e.target.closest("#filterModalBackdrop") ||
-        e.target.closest(".filter-btn")
-      )
-        return;
-
-      // Otherwise, clear highlights
-      clearFilter();
-    });
-    document.removeEventListener("keydown", window._closeTopmostPopupHandler);
-window._closeTopmostPopupHandler = closeTopmostPopupOnEsc;
-document.addEventListener("keydown", window._closeTopmostPopupHandler);
-
-   filterResultsModalBackdrop.addEventListener("click", (e) => {
-  if (e.target === filterResultsModalBackdrop) {
-    // Optional: also reset filter scroll
+    // Reset scroll for filter results
     const results = document.getElementById("filterResultsContainer");
     if (results) {
       results.scrollTop = 0;
       results.scrollLeft = 0;
     }
+  }
+
+  if (top.id === "albumModalBackdrop") {
+    const tracksList = document.getElementById("tracksList");
+    if (tracksList) tracksList.innerHTML = ""; // clear loaded tracks
+  }
+}
+
+// Attach the Escape key listener
+document.addEventListener("keydown", closeTopmostPopupOnEsc);
+
+// 7️⃣ Event listeners
+countryBtn.addEventListener("click", () => openFilterModal("Country"));
+genreBtn.addEventListener("click", () => openFilterModal("__GENRES__"));
+
+document.addEventListener("click", (e) => {
+  // If click is inside a highlighted album, do nothing
+  if (e.target.closest(".albums-wrapper .album.highlighted")) return;
+
+  // If click is inside the filter modal or on the filter buttons, do nothing
+  if (
+    e.target.closest("#filterModalBackdrop") ||
+    e.target.closest(".filter-btn")
+  ) return;
+
+  // Otherwise, clear highlights (defensive: only if function exists)
+  if (typeof clearFilter === "function") clearFilter();
+});
+
+// Clicking outside filter results closes it
+filterResultsModalBackdrop.addEventListener("click", (e) => {
+  if (e.target === filterResultsModalBackdrop) {
     filterResultsModalBackdrop.style.display = "none";
+
+    // Reset filter scroll
+    const results = document.getElementById("filterResultsContainer");
+    if (results) {
+      results.scrollTop = 0;
+      results.scrollLeft = 0;
+    }
   }
 });
   </script>
@@ -1090,5 +1067,6 @@ document.addEventListener("keydown", window._closeTopmostPopupHandler);
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </body>
 </html>
+
 
 
