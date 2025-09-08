@@ -1488,7 +1488,7 @@ function openFilterModal(column) {
 function applyFilter(column, value) {
   const albumDivs = document.querySelectorAll(".albums-wrapper .album");
 
-  // Reset all first
+  // Reset all albums
   albumDivs.forEach((div) => {
     div.classList.remove("highlighted");
     div.style.transition = "all 0.3s ease";
@@ -1498,33 +1498,31 @@ function applyFilter(column, value) {
     div.style.transform = "scale(1)";
   });
 
-  const valLower = String(value).toLowerCase();
+  const valLower = String(value).trim().toLowerCase();
 
   albumsData.forEach((album, index) => {
     let match = false;
 
-   if (column === "__GENRES__") {
-  const allGenres = []
-    .concat(
-      String(album["Genre 1"] || "")
-        .split(",")
-        .map((s) => s.trim()),
-      String(album["Genre 2"] || "")
-        .split(",")
-        .map((s) => s.trim()),
-      String(album["Genre(s)"] || "")
-        .split(",")
-        .map((s) => s.trim())
-    )
-    .filter(Boolean)
-    .map((s) => s.toLowerCase());
+    if (column === "__GENRES__") {
+      // Collect all genres from the album
+      const allGenres = ["Genre 1", "Genre 2", "Genre(s)"]
+        .map((key) => (album[key] || ""))
+        .flatMap((str) => str.split(",").map((s) => s.trim()))
+        .filter(Boolean)
+        .map((s) => s.toLowerCase());
 
-  match = allGenres.includes(valLower);
-} else {
-  // Normalize country codes (trim + lowercase) to prevent mismatches
-  match = String(album[column] || "").trim().toLowerCase() === String(value).trim().toLowerCase();
-}
+      match = allGenres.includes(valLower);
 
+    } else if (column === "Country") {
+      // Compare country codes (database has codes, filter may show full names)
+      match = String(album[column] || "").trim().toLowerCase() === valLower;
+
+    } else {
+      // Default strict match for other columns
+      match = String(album[column] || "").trim().toLowerCase() === valLower;
+    }
+
+    // Highlight matching albums
     if (match) {
       const div = albumDivs[index];
       if (div) {
@@ -1573,6 +1571,7 @@ document.addEventListener("click", (e) => {
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
 
 
 
