@@ -1,0 +1,227 @@
+/* -----------------------
+   Filtered Albums — FULL corrected CSS
+   ----------------------- */
+
+/* Modal image styling */
+.modal-header img {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Modal title container */
+.modal-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-title .name {
+  font-weight: bold;
+}
+
+.modal-title .artist {
+  color: #ddd;
+  font-size: 13px;
+}
+
+/* Tracks inside modal (separate small modal) */
+.tracks {
+  max-height: 60vh;
+  overflow: auto;
+  border-top: 1px solid #333;
+  padding-top: 8px;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.track:hover {
+  background: #222;
+}
+
+/* Close button style */
+.close-btn {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* General modal styles (other modals) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal {
+  width: 90%;
+  max-width: 560px;
+  background: #181818;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* -----------------------
+       Filtered Albums Modal Backdrop
+       ----------------------- */
+#filterResultsModalBackdrop {
+  position: fixed;
+  inset: 0;
+  display: none; /* show via JS when opening */
+  align-items: flex-start; /* place modal near top */
+  justify-content: center;
+  padding-top: 40px; /* space from top of viewport */
+  overflow: auto; /* allow scrolling if modal area > viewport */
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 900; /* keep below player bar which is z-index:1000 */
+}
+
+/* -----------------------
+       Filtered Albums Modal
+       ----------------------- */
+#filterResultsModal {
+  max-width: 85%;
+  max-height: calc(100vh - 120px); /* safe area (player bar + top padding) */
+  display: flex;
+  flex-direction: column;
+  background: #181818;
+  border-radius: 12px;
+  overflow: hidden; /* modal container itself doesn't scroll; inner container does */
+  box-shadow: 0 0 20px 6px rgba(0, 255, 120, 0.25);
+  border: 1px solid rgba(0, 255, 120, 0.5);
+  margin: 0 auto;
+  padding: 0px;
+}
+
+/* Sticky header (stays visible) */
+#filterResultsModal .modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #181818;
+}
+
+/* Sticky footer (close button always reachable) */
+#filterResultsModal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  background: #181818;
+  padding: 8px 16px;
+  z-index: 30;
+}
+
+/* -----------------------
+       Years container (HORIZONTAL layout)
+       - Years are columns placed side-by-side
+       - The container is the scrollable area (vertical & horizontal)
+       ----------------------- */
+#filterResultsContainer {
+  flex: 1; /* take remaining space between header and footer */
+  display: flex; /* put year-columns side by side */
+  flex-direction: row;
+  align-items: flex-start; /* align column tops */
+  gap: 20px; /* space between year columns */
+  overflow-x: auto; /* horizontal scroll if many years */
+  overflow-y: auto; /* vertical scroll if columns taller than modal */
+  padding: 0 12px 12px; /* bottom padding to avoid overlap with footer */
+  -webkit-overflow-scrolling: touch; /* smoother mobile scrolling */
+}
+
+/* Each year is its own column (vertical stack of albums) */
+#filterResultsContainer .year-column {
+  display: flex;
+  flex-direction: column; /* albums stack vertically */
+  gap: 0; /* <--- changed: remove gap so first album sits flush under year-title */
+  padding: 0; /* ensure no extra top padding */
+  margin: 0;
+  min-width: 200px; /* adjust as needed so albums have room — change if your items are different size */
+}
+
+/* Year title: sticky inside the scrollable container
+       It will stick to the top of #filterResultsContainer's visible area (i.e. just under the header)
+    */
+#filterResultsContainer .year-title {
+  position: sticky;
+  top: 0; /* sticky to top of the scrolling container */
+  margin: 0;
+  min-height: 20px; /* adjust height visually */
+  display: flex;
+  align-items: center; /* vertical center of text */
+  justify-content: center; /* horizontal center of text */
+  background: #181818; /* same as modal to avoid visual gaps */
+  z-index: 20; /* above album items but below header (header z-index:30) */
+  padding: 0px 4px 0px 4px; /* removed bottom padding so albums sit close */
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 0 2px 2px rgba(0, 255, 120, 0.25);
+}
+
+/* CRITICAL: ensure there is NO gap between the year-title and the first album.
+       Target the actual album elements (your code creates div.album). */
+#filterResultsContainer .year-column > .album:first-child,
+#filterResultsContainer .year-column > *:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Also ensure album elements generally don't have unexpected top margin */
+#filterResultsContainer .year-column .album {
+  margin: 0;
+  padding: 0;
+}
+
+/* If you use an inner wrapper inside album, handle that too (defensive) */
+#filterResultsContainer .year-column .album > * {
+  margin-top: 0;
+}
+
+/* Restore spacing BETWEEN album items (since we removed the flex gap) */
+#filterResultsContainer .year-column .album + .album {
+  margin-top: 8px;
+}
+
+/* Keep year-title breathing room bottom reduced (already 0) */
+/* Keep album items layout (small sample styling — adjust in your main stylesheet) */
+#filterResultsContainer .album {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* keep tracks / small modal styles intact */
+.tracks {
+  /* unchanged above */
+}
+/* Remove main-layout top offset inside the modal so first album sits flush under year-title */
+#filterResultsModal .albums-wrapper {
+  margin-top: 0;
+  padding-top: 0;
+}
