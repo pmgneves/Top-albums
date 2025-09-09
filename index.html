@@ -1027,63 +1027,59 @@ function closeTopmostPopupOnEsc(e) {
 
 // 7️⃣ Event listeners
 // Filter buttons open modals
+// Open filter modal buttons
 countryBtn.addEventListener("click", () => openFilterModal("Country"));
 genreBtn.addEventListener("click", () => openFilterModal("__GENRES__"));
 
-// Click outside highlighted albums or filter modal does nothing (defensive)
+// Clicking outside highlighted albums or modals (defensive)
 document.addEventListener("click", (e) => {
-  // Ignore clicks inside highlighted albums
+  // If click is inside a highlighted album, do nothing
   if (e.target.closest(".albums-wrapper .album.highlighted")) return;
 
-  // Ignore clicks inside the filter modal or on filter buttons
+  // If click is inside the filter modal or on a filter button, do nothing
   if (e.target.closest("#filterModalBackdrop") || e.target.closest(".filter-btn")) return;
 
-  // No other actions needed here; removed clearFilter() call
+  // Otherwise, no action needed (no clearFilter call, avoids errors)
 });
 
-// Clicking outside the filter results modal closes only that modal
-filterResultsModalBackdrop.addEventListener("click", (e) => {
-  if (e.target === filterResultsModalBackdrop) {
-    filterResultsModalBackdrop.style.display = "none";
+// Clicking outside filter results closes only the results modal
+const filterResultsModalBackdrop = document.getElementById("filterResultsModalBackdrop");
+if (filterResultsModalBackdrop) {
+  filterResultsModalBackdrop.addEventListener("click", (e) => {
+    if (e.target === filterResultsModalBackdrop) {
+      filterResultsModalBackdrop.style.display = "none";
 
-    // Reset filter scroll
-    const results = document.getElementById("filterResultsContainer");
-    if (results) {
-      results.scrollTop = 0;
-      results.scrollLeft = 0;
+      // Reset scroll for consistent open position
+      const results = document.getElementById("filterResultsContainer");
+      if (results) {
+        results.scrollTop = 0;
+        results.scrollLeft = 0;
+      }
     }
-  }
-});
+  });
+}
 
-// 7️⃣ Keyboard: close only the topmost popup on Escape
-document.removeEventListener("keydown", window._closeTopmostPopupHandler);
-window._closeTopmostPopupHandler = function (e) {
-  if (e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
-
-  const active = document.activeElement;
-  if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
-
-  // Candidate popups ordered by expected z-index
+// -------------------------
+// ESC KEY HANDLER (topmost modal only)
+// -------------------------
+function closeTopmostPopup() {
   const ids = ["albumModalBackdrop", "filterResultsModalBackdrop", "filterModalBackdrop"];
   const visible = ids
-    .map((id) => document.getElementById(id))
-    .filter(Boolean)
-    .map((el) => {
-      const style = getComputedStyle(el);
-      const isVisible = style.display !== "none" && style.visibility !== "hidden" && el.offsetParent !== null;
-      const z = parseInt(style.zIndex, 10);
-      return { el, isVisible, z: Number.isFinite(z) ? z : 0 };
-    })
-    .filter((o) => o.isVisible);
+    .map(id => document.getElementById(id))
+    .filter(el => el && el.style.display !== "none" && el.offsetParent !== null)
+    .map(el => {
+      const z = parseInt(getComputedStyle(el).zIndex, 10);
+      return { el, z: Number.isFinite(z) ? z : 0 };
+    });
 
   if (!visible.length) return;
 
-  // Topmost element = highest z-index
+  // Find the topmost element by z-index
   visible.sort((a, b) => a.z - b.z);
   const top = visible[visible.length - 1].el;
   top.style.display = "none";
 
-  // Reset filter scroll if closing filter results
+  // Reset scroll for filter results modal
   if (top.id === "filterResultsModalBackdrop") {
     const results = document.getElementById("filterResultsContainer");
     if (results) {
@@ -1092,20 +1088,29 @@ window._closeTopmostPopupHandler = function (e) {
     }
   }
 
-  // Clear album tracks if album modal closed
+  // Clear album tracks if closing album modal
   if (top.id === "albumModalBackdrop") {
     const tracksList = document.getElementById("tracksList");
     if (tracksList) tracksList.innerHTML = "";
   }
-};
-document.addEventListener("keydown", window._closeTopmostPopupHandler);
+}
 
+// Attach Esc listener after modals exist
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
+
+  const active = document.activeElement;
+  if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
+
+  closeTopmostPopup();
+});
   </script>
 
   <!-- Move Spotify SDK load to AFTER the main script so the global callback exists when the SDK runs -->
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </body>
 </html>
+
 
 
 
