@@ -118,13 +118,13 @@
 
       // ====== SIMPLE LOGIN TOGGLE (single handler) ======
       // Clicking login button: if logged in -> logout, else -> start auth
-      loginBtn.addEventListener("click", () => {
-        if (isLoggedIn) {
-          logoutSpotify();
-        } else {
-          authenticateSpotify();
-        }
-      });
+loginBtn.addEventListener("click", async () => {
+  if (token) {
+    logoutSpotify();
+  } else {
+    authenticateSpotify();
+  }
+});
 
       // ====== DOM EVENT LISTENERS ======
       barInfo.addEventListener("click", () => {
@@ -393,11 +393,13 @@
         const code = params.get("code");
         const storedVerifier = localStorage.getItem("code_verifier");
 
-        const existing = localStorage.getItem("spotify_access_token");
-        if (existing) {
-          token = existing;
-          initPlayerIfPossible();
-        }
+      const existing = localStorage.getItem("spotify_access_token");
+if (existing) {
+  token = existing;
+  await fetchSpotifyProfile();
+  initPlayerIfPossible();
+}
+
 
         if (code && storedVerifier) {
           try {
@@ -446,7 +448,7 @@
           loginBtn.textContent = `Logged in as ${user.display_name || user.id} (Logout)`;
         } else {
           isLoggedIn = false;
-          loginBtn.textContent = "Click to login to Spotify";
+loginBtn.textContent = "Log in with Spotify";
         }
       }
 
@@ -649,8 +651,8 @@
       }
       async function startTrackPlayback(albumUri, trackUri) {
         if (!token || !deviceId) return;
-        const offset = trackUri ? { uri: trackUri } : undefined;
-        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
+renderFilteredAlbums(filteredData, column === "Country" ? countryNames[value] || value : value);
+await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -732,6 +734,8 @@
         }
 
         await fetchAlbums(); // load albums independently of login
+        // After albums load, sync rank layout
+requestAnimationFrame(syncRankMetrics);
       };
 
       /* ===================== NEW FILTER BUTTONS (UPGRADED) ===================== */
@@ -972,3 +976,4 @@
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
   </body>
 </html>
+
