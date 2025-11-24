@@ -8,826 +8,756 @@
     <link rel="stylesheet" href="./filters-pop-up.css" />
     <link rel="stylesheet" href="./mobile-style.css" />
   </head>
-</html>
-<body>
-  <header>
-    <div class="site-title">Top Albums by Year</div>
-    <button class="decade-btn" onclick="scrollToDecade('199')">1990s</button>
-    <button class="decade-btn" onclick="scrollToDecade('200')">2000s</button>
-    <button class="decade-btn" onclick="scrollToDecade('201')">2010s</button>
-    <button class="decade-btn" onclick="scrollToDecade('202')">2020s</button>
-    <div class="spacer"></div>
-    <button id="loginBtn" class="login-btn">Log in with Spotify</button>
-  </header>
 
-  <div class="main-container">
-    <div class="rank-column" id="rankColumn">
-      <div id="rankScroller"></div>
+  <body>
+    <header>
+      <div class="site-title">Top Albums by Year</div>
+      <button class="decade-btn" onclick="scrollToDecade('199')">1990s</button>
+      <button class="decade-btn" onclick="scrollToDecade('200')">2000s</button>
+      <button class="decade-btn" onclick="scrollToDecade('201')">2010s</button>
+      <button class="decade-btn" onclick="scrollToDecade('202')">2020s</button>
+      <div class="spacer"></div>
+      <button id="loginBtn" class="login-btn">Log in with Spotify</button>
+    </header>
+
+    <div class="main-container">
+      <div class="rank-column" id="rankColumn">
+        <div id="rankScroller"></div>
+      </div>
+      <div class="years-container" id="yearsContainer"></div>
     </div>
-    <div class="years-container" id="yearsContainer"></div>
-  </div>
 
-  <!-- Modal -->
-  <div id="albumModalBackdrop" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <img id="modalCover" src="" alt="" />
-        <div class="modal-title">
-          <div class="name" id="modalAlbumName"></div>
-          <div class="artist" id="modalArtistName"></div>
+    <!-- Modal -->
+    <div id="albumModalBackdrop" class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header">
+          <img id="modalCover" src="" alt="" />
+          <div class="modal-title">
+            <div class="name" id="modalAlbumName"></div>
+            <div class="artist" id="modalArtistName"></div>
+          </div>
+          <div style="margin-left: auto">
+            <button id="modalPlayBtn" class="login-btn" style="padding: 6px 12px">
+              Play
+            </button>
+          </div>
         </div>
-        <div style="margin-left: auto">
-          <button
-            id="modalPlayBtn"
-            class="login-btn"
-            style="padding: 6px 12px"
-          >
-            Play
-          </button>
+        <div class="tracks" id="tracksList"></div>
+        <div class="modal-actions">
+          <button id="closeModalBtn" class="close-btn">Close</button>
         </div>
       </div>
-      <div class="tracks" id="tracksList"></div>
-      <div class="modal-actions">
-        <button id="closeModalBtn" class="close-btn">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Player Bar -->
-  <div class="player-bar">
-    <div class="track-info" id="barInfo">
-      <img
-        id="barCover"
-        src=""
-        alt="Album Cover"
-        style="display: block"
-        onerror="this.style.display='none'"
-      />
-      <div class="track-text">
-        <div id="barTrack" class="track-name"></div>
-        <div id="barArtist" class="track-artist"></div>
-      </div>
     </div>
 
-    <div class="controls">
-      <button id="prevBtn" class="ctrl-btn" title="Previous">⏮️</button>
-      <button id="playPauseBtn" class="ctrl-btn" title="Play/Pause">
-        ▶️
-      </button>
-      <button id="nextBtn" class="ctrl-btn" title="Next">⏭️</button>
-      <div class="progress-container">
-        <span id="currentTime">0:00</span>
-        <input type="range" id="progressBar" min="0" max="100" value="0" />
-        <span id="totalTime">0:00</span>
+    <!-- Bottom Player Bar -->
+    <div class="player-bar">
+      <div class="track-info" id="barInfo">
+        <img
+          id="barCover"
+          src=""
+          alt="Album Cover"
+          style="display: block"
+          onerror="this.style.display='none'"
+        />
+        <div class="track-text">
+          <div id="barTrack" class="track-name"></div>
+          <div id="barArtist" class="track-artist"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="prevBtn" class="ctrl-btn" title="Previous">⏮️</button>
+        <button id="playPauseBtn" class="ctrl-btn" title="Play/Pause">▶️</button>
+        <button id="nextBtn" class="ctrl-btn" title="Next">⏭️</button>
+        <div class="progress-container">
+          <span id="currentTime">0:00</span>
+          <input type="range" id="progressBar" min="0" max="100" value="0" />
+          <span id="totalTime">0:00</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- PapaParse -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <script>
-    /* ===================== CONFIG ===================== */
-    const CONFIG = {
-      SHEET_CSV_URL:
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
-      SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce", // Public is OK
-      REDIRECT_URI: "https://top-albums.netlify.app", // Must match Spotify app settings
-      BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth",
-    };
+    <script>
+      /* ===================== CONFIG ===================== */
+      const CONFIG = {
+        SHEET_CSV_URL:
+          "https://docs.google.com/spreadsheets/d/e/2PACX-1vS87YVlo7KZGqRzYWLfgmiyzu2SkcP3Rj0kmZb5yN3xqFbNDgBpmCY7hkrsVWsrwq1NlgGuZRg6uHR3/pub?gid=1476054055&single=true&output=csv",
+        SPOTIFY_CLIENT_ID: "8d7b599ddbef4be296e05e04728908ce", // Public is OK
+        REDIRECT_URI: "https://top-albums.netlify.app", // Must match Spotify app settings
+        BACKEND_FUNCTION_URL: "/.netlify/functions/spotify-auth",
+      };
 
-    let token = null;
-    let refreshToken = null;
-    let spotifyUsername = null; // will store logged-in user name
-    let albumsData = [];
-    let player = null;
-    let deviceId = null;
-    let currentAlbumUri = null;
-    let progressInterval = null;
+      let token = null;
+      let refreshToken = null;
+      let spotifyUsername = null; // will store logged-in user name
+      let albumsData = [];
+      let player = null;
+      let deviceId = null;
+      let currentAlbumUri = null;
+      let progressInterval = null;
 
-    // ====== DOM ELEMENTS ======
-    const barInfo = document.getElementById("barInfo");
-    const progressBar = document.getElementById("progressBar");
-    const currentTimeEl = document.getElementById("currentTime");
-    const totalTimeEl = document.getElementById("totalTime");
-    const playPauseBtn = document.getElementById("playPauseBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const prevBtn = document.getElementById("prevBtn");
-    const modalBackdrop = document.getElementById("albumModalBackdrop");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const modalCover = document.getElementById("modalCover");
-    const modalAlbumName = document.getElementById("modalAlbumName");
-    const modalArtistName = document.getElementById("modalArtistName");
-    const tracksList = document.getElementById("tracksList");
-    const modalPlayBtn = document.getElementById("modalPlayBtn");
-    const loginBtn = document.getElementById("loginBtn");
+      // ====== DOM ELEMENTS ======
+      const barInfo = document.getElementById("barInfo");
+      const progressBar = document.getElementById("progressBar");
+      const currentTimeEl = document.getElementById("currentTime");
+      const totalTimeEl = document.getElementById("totalTime");
+      const playPauseBtn = document.getElementById("playPauseBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const prevBtn = document.getElementById("prevBtn");
+      const modalBackdrop = document.getElementById("albumModalBackdrop");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const modalCover = document.getElementById("modalCover");
+      const modalAlbumName = document.getElementById("modalAlbumName");
+      const modalArtistName = document.getElementById("modalArtistName");
+      const tracksList = document.getElementById("tracksList");
+      const modalPlayBtn = document.getElementById("modalPlayBtn");
+      const loginBtn = document.getElementById("loginBtn");
 
-    // Toggle behavior for login/logout
-    loginBtn.addEventListener("click", () => {
-      if (isLoggedIn) {
-        logoutSpotify(); // logs out
-      } else {
-        // existing login redirect flow
-        window.location.href = "https://accounts.spotify.com/authorize?...";
-      }
-    });
-
-    // ====== DOM EVENT LISTENERS ======
-    barInfo.addEventListener("click", () => {
-      if (currentAlbumUri) showModal();
-    });
-    playPauseBtn.addEventListener("click", () => {
-      if (player) player.togglePlay();
-    });
-    nextBtn.addEventListener("click", () => {
-      if (player) player.nextTrack();
-    });
-    prevBtn.addEventListener("click", () => {
-      if (player) player.previousTrack();
-    });
-    closeModalBtn.addEventListener("click", hideModal);
-    modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === modalBackdrop) hideModal();
-    });
-    modalPlayBtn.addEventListener("click", () => {
-      if (currentAlbumUri) startAlbumPlayback(currentAlbumUri);
-    });
-    loginBtn.addEventListener("click", authenticateSpotify);
-
-    // ====== DATA LOAD ======
-    async function fetchAlbums() {
-      try {
-        const response = await fetch(CONFIG.SHEET_CSV_URL);
-        const text = await response.text();
-        Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            albumsData = results.data;
-            renderAlbums();
-          },
-        });
-      } catch (err) {
-        console.error("Error fetching CSV:", err);
-      }
-    }
-
-    function renderAlbums() {
-      const container = document.getElementById("yearsContainer");
-      const rankScroller = document.getElementById("rankScroller");
-      container.innerHTML = "";
-      rankScroller.innerHTML = "";
-
-      const years = [...new Set(albumsData.map((a) => a.Year))].sort();
-      let globalRank = 1;
-
-      years.forEach((year) => {
-        const yearCol = document.createElement("div");
-        yearCol.className = "year-column";
-
-        const yearDiv = document.createElement("div");
-        yearDiv.className = "year-title";
-        yearDiv.innerText = year;
-        yearCol.appendChild(yearDiv);
-
-        const albumsWrapper = document.createElement("div");
-        albumsWrapper.className = "albums-wrapper";
-
-        const albumsOfYear = albumsData
-          .filter((a) => a.Year === year)
-          .sort((a, b) => Number(a.Rank) - Number(b.Rank));
-
-        albumsOfYear.forEach((a) => {
-          const [artist, albumTitle] = (
-            a["Album-Artist"]?.split(" - ") || ["Unknown", "Unknown"]
-          ).map((s) => s.trim());
-          const div = document.createElement("div");
-          div.className = "album";
-          // store unique key so we can locate this DOM element later when filtering
-          div.dataset.albumArtist = String(a["Album-Artist"] || "").trim();
-
-          // attach identifying data attributes so we can reliably find the right DOM node later
-          div.dataset.albumArtist = (a["Album-Artist"] || "").trim();
-          div.dataset.spotifyuri = (a.SpotifyURI || "").trim();
-          div.dataset.country = (a["Country"] || "").trim();
-          // optional: store joined genres for quick debugging
-          div.dataset.genres = [a["Genre 1"], a["Genre 2"], a["Genre(s)"]]
-            .filter(Boolean)
-            .map((s) => String(s).trim())
-            .join(",");
-
-          const infoDiv = document.createElement("div");
-          infoDiv.className = "album-info";
-          infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
-
-          const cover = a.CoverURL
-            ? createCoverImg(a.CoverURL)
-            : createNoCover();
-          div.appendChild(cover);
-          div.appendChild(infoDiv);
-
-          div.onclick = () => openAlbumPopup(a, artist, albumTitle);
-
-          albumsWrapper.appendChild(div);
-
-          const rankDiv = document.createElement("div");
-          rankDiv.className = "rank-number";
-          rankDiv.innerText = globalRank++;
-          rankScroller.appendChild(rankDiv);
-        });
-
-        yearCol.appendChild(albumsWrapper);
-        container.appendChild(yearCol);
-      });
-
-      // Ensure layout metrics are calculated first, then scroll.
-      requestAnimationFrame(() => {
-        syncRankMetrics();
-
-        // ===== Scroll to current year or latest available =====
-        const currentYear = new Date().getFullYear().toString();
-        const yearCols = [...container.children];
-
-        // Try to find current year first
-        let target = yearCols.find(
-          (col) => col.firstChild && col.firstChild.innerText === currentYear
-        );
-
-        // If not found, pick the latest year
-        if (!target && yearCols.length > 0) {
-          target = yearCols[yearCols.length - 1];
-        }
-
-        if (target) {
-          // use 'auto' to avoid interfering with user perception on initial load
-          target.scrollIntoView({ behavior: "auto", inline: "start" });
+      // ====== SIMPLE LOGIN TOGGLE (single handler) ======
+      // Clicking login button: if logged in -> logout, else -> start auth
+      loginBtn.addEventListener("click", () => {
+        if (isLoggedIn) {
+          logoutSpotify();
+        } else {
+          authenticateSpotify();
         }
       });
-    }
-    function renderFilteredAlbums(filteredData, title) {
-      const container = document.getElementById("filterResultsContainer");
-      container.innerHTML = "";
 
-      const years = [...new Set(filteredData.map((a) => a.Year))].sort();
+      // ====== DOM EVENT LISTENERS ======
+      barInfo.addEventListener("click", () => {
+        if (currentAlbumUri) showModal();
+      });
+      playPauseBtn.addEventListener("click", () => {
+        if (player) player.togglePlay();
+      });
+      nextBtn.addEventListener("click", () => {
+        if (player) player.nextTrack();
+      });
+      prevBtn.addEventListener("click", () => {
+        if (player) player.previousTrack();
+      });
+      closeModalBtn.addEventListener("click", hideModal);
+      modalBackdrop.addEventListener("click", (e) => {
+        if (e.target === modalBackdrop) hideModal();
+      });
+      modalPlayBtn.addEventListener("click", () => {
+        if (currentAlbumUri) startAlbumPlayback(currentAlbumUri);
+      });
 
-      years.forEach((year) => {
-        const yearCol = document.createElement("div");
-        yearCol.className = "year-column";
+      // ====== DATA LOAD ======
+      async function fetchAlbums() {
+        try {
+          const response = await fetch(CONFIG.SHEET_CSV_URL);
+          const text = await response.text();
+          Papa.parse(text, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+              albumsData = results.data;
+              renderAlbums();
+            },
+          });
+        } catch (err) {
+          console.error("Error fetching CSV:", err);
+        }
+      }
 
-        const yearDiv = document.createElement("div");
-        yearDiv.className = "year-title";
-        yearDiv.innerText = year;
-        yearCol.appendChild(yearDiv);
+      function renderAlbums() {
+        const container = document.getElementById("yearsContainer");
+        const rankScroller = document.getElementById("rankScroller");
+        container.innerHTML = "";
+        rankScroller.innerHTML = "";
 
-        const albumsWrapper = document.createElement("div");
-        albumsWrapper.className = "albums-wrapper";
+        const years = [...new Set(albumsData.map((a) => a.Year))].sort();
+        let globalRank = 1;
 
-        filteredData
-          .filter((a) => a.Year === year)
-          .sort((a, b) => Number(a.Rank) - Number(b.Rank)) // optional
-          .forEach((a) => {
+        years.forEach((year) => {
+          const yearCol = document.createElement("div");
+          yearCol.className = "year-column";
+
+          const yearDiv = document.createElement("div");
+          yearDiv.className = "year-title";
+          yearDiv.innerText = year;
+          yearCol.appendChild(yearDiv);
+
+          const albumsWrapper = document.createElement("div");
+          albumsWrapper.className = "albums-wrapper";
+
+          const albumsOfYear = albumsData
+            .filter((a) => a.Year === year)
+            .sort((a, b) => Number(a.Rank) - Number(b.Rank));
+
+          albumsOfYear.forEach((a) => {
             const [artist, albumTitle] = (
               a["Album-Artist"]?.split(" - ") || ["Unknown", "Unknown"]
             ).map((s) => s.trim());
             const div = document.createElement("div");
             div.className = "album";
+            // store unique key so we can locate this DOM element later when filtering
+            div.dataset.albumArtist = String(a["Album-Artist"] || "").trim();
+
+            // attach identifying data attributes so we can reliably find the right DOM node later
             div.dataset.albumArtist = (a["Album-Artist"] || "").trim();
             div.dataset.spotifyuri = (a.SpotifyURI || "").trim();
+            div.dataset.country = (a["Country"] || "").trim();
+            // optional: store joined genres for quick debugging
+            div.dataset.genres = [a["Genre 1"], a["Genre 2"], a["Genre(s)"]]
+              .filter(Boolean)
+              .map((s) => String(s).trim())
+              .join(",");
 
             const infoDiv = document.createElement("div");
             infoDiv.className = "album-info";
             infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
 
-            const cover = a.CoverURL
-              ? createCoverImg(a.CoverURL)
-              : createNoCover();
+            const cover = a.CoverURL ? createCoverImg(a.CoverURL) : createNoCover();
             div.appendChild(cover);
             div.appendChild(infoDiv);
 
             div.onclick = () => openAlbumPopup(a, artist, albumTitle);
 
             albumsWrapper.appendChild(div);
+
+            const rankDiv = document.createElement("div");
+            rankDiv.className = "rank-number";
+            rankDiv.innerText = globalRank++;
+            rankScroller.appendChild(rankDiv);
           });
 
-        yearCol.appendChild(albumsWrapper);
-        container.appendChild(yearCol);
-      });
-
-      filterResultsModalBackdrop.style.display = "flex";
-      document.getElementById("filterResultsModalTitle").textContent = title;
-    }
-    function openFilterResultsModal(column, value) {
-  let filteredData;
-
-  if (column === "__GENRES__") {
-    filteredData = albumsData.filter((album) => {
-      const allGenres = []
-        .concat(
-          String(album["Genre 1"] || "").split(","),
-          String(album["Genre 2"] || "").split(","),
-          String(album["Genre(s)"] || "").split(",")
-        )
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean);
-      return allGenres.includes(String(value).toLowerCase());
-    });
-  } else {
-    filteredData = albumsData.filter((album) => album[column] === value);
-  }
-
-  renderFilteredAlbums(
-    filteredData,
-    column === "Country" ? countryNames[value] || value : value
-  );
-
-  // --- scroll to most recent year ---
-  const container = document.getElementById("filterResultsContainer");
-  const yearColumns = container.querySelectorAll(".year-column");
-  if (yearColumns.length > 0) {
-    const lastYearCol = yearColumns[yearColumns.length - 1];
-    lastYearCol.scrollIntoView({ behavior: "auto", block: "start" });
-  }
-}
-
-
-    function createCoverImg(url) {
-      const img = document.createElement("img");
-      img.src = url;
-      return img;
-    }
-    function createNoCover() {
-      const div = document.createElement("div");
-      div.className = "no-cover";
-      div.innerText = "Album not on Spotify";
-      return div;
-    }
-    function scrollToDecade(decadePrefix) {
-      const container = document.getElementById("yearsContainer");
-      const target = [...container.children].find(
-        (col) =>
-          col.firstChild && col.firstChild.innerText.startsWith(decadePrefix)
-      );
-      if (target)
-        target.scrollIntoView({ behavior: "smooth", inline: "start" });
-    }
-
-    // ====== AUTH (PKCE) ======
-    function generateRandomString(length) {
-      let text = "";
-      const possible =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      for (let i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-      }
-      return text;
-    }
-    async function generateCodeChallenge(codeVerifier) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(codeVerifier);
-      const digest = await window.crypto.subtle.digest("SHA-256", data);
-      return btoa(String.fromCharCode(...new Uint8Array(digest)))
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
-    }
-    function authenticateSpotify() {
-      const codeVerifier = generateRandomString(128);
-      localStorage.setItem("code_verifier", codeVerifier);
-      generateCodeChallenge(codeVerifier).then((codeChallenge) => {
-        const scope =
-          "user-modify-playback-state user-read-playback-state streaming";
-        const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${
-          CONFIG.SPOTIFY_CLIENT_ID
-        }&scope=${encodeURIComponent(
-          scope
-        )}&redirect_uri=${encodeURIComponent(
-          CONFIG.REDIRECT_URI
-        )}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
-        window.location = authUrl;
-      });
-    }
-    async function handleAuthRedirect() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      const storedVerifier = localStorage.getItem("code_verifier");
-
-      const existing = localStorage.getItem("spotify_access_token");
-      if (existing) {
-        token = existing;
-        initPlayerIfPossible();
-      }
-
-      if (code && storedVerifier) {
-        try {
-          const res = await fetch(
-            `${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(
-              code
-            )}&verifier=${encodeURIComponent(storedVerifier)}`
-          );
-          const data = await res.json();
-          if (data.access_token) {
-            token = data.access_token;
-            localStorage.setItem("spotify_access_token", token);
-            localStorage.removeItem("code_verifier");
-            window.history.replaceState(
-              {},
-              document.title,
-              CONFIG.REDIRECT_URI
-            );
-            initPlayerIfPossible();
-          } else {
-            console.error("Spotify token error:", data);
-            alert("Spotify login failed. Check console.");
-          }
-        } catch (err) {
-          console.error("Error fetching Spotify token:", err);
-          alert("Spotify login failed. Check console.");
-        }
-      }
-    }
-    async function fetchSpotifyProfile() {
-      if (!token) return null;
-      try {
-        const resp = await fetch("https://api.spotify.com/v1/me", {
-          headers: { Authorization: `Bearer ${token}` },
+          yearCol.appendChild(albumsWrapper);
+          container.appendChild(yearCol);
         });
 
-        if (!resp.ok) throw new Error("Spotify API request failed");
+        // Ensure layout metrics are calculated first, then scroll.
+        requestAnimationFrame(() => {
+          syncRankMetrics();
 
-        const data = await resp.json();
-        updateLoginButton(data); // 🟢 NEW: use update function
-        return data;
-      } catch (e) {
-        console.error("Failed to fetch Spotify profile:", e);
-        updateLoginButton(null); // 🟢 NEW: reset on error
-        return null;
+          // ===== Scroll to current year or latest available =====
+          const currentYear = new Date().getFullYear().toString();
+          const yearCols = [...container.children];
+
+          // Try to find current year first
+          let target = yearCols.find(
+            (col) => col.firstChild && col.firstChild.innerText === currentYear
+          );
+
+          // If not found, pick the latest year
+          if (!target && yearCols.length > 0) {
+            target = yearCols[yearCols.length - 1];
+          }
+
+          if (target) {
+            // use 'auto' to avoid interfering with user perception on initial load
+            target.scrollIntoView({ behavior: "auto", inline: "start" });
+          }
+        });
       }
-    }
-    // 🟢 NEW: Track login state
-    let isLoggedIn = false;
 
-    // Update button state (login/logout)
-    function updateLoginButton(user) {
-      if (user && (user.display_name || user.id)) {
-        isLoggedIn = true;
-        loginBtn.textContent = `Logged in as ${
-          user.display_name || user.id
-        } (Logout)`;
-      } else {
-        isLoggedIn = false;
-        loginBtn.textContent = "Click to login to Spotify";
+      function renderFilteredAlbums(filteredData, title) {
+        const container = document.getElementById("filterResultsContainer");
+        container.innerHTML = "";
+
+        const years = [...new Set(filteredData.map((a) => a.Year))].sort();
+
+        years.forEach((year) => {
+          const yearCol = document.createElement("div");
+          yearCol.className = "year-column";
+
+          const yearDiv = document.createElement("div");
+          yearDiv.className = "year-title";
+          yearDiv.innerText = year;
+          yearCol.appendChild(yearDiv);
+
+          const albumsWrapper = document.createElement("div");
+          albumsWrapper.className = "albums-wrapper";
+
+          filteredData
+            .filter((a) => a.Year === year)
+            .sort((a, b) => Number(a.Rank) - Number(b.Rank)) // optional
+            .forEach((a) => {
+              const [artist, albumTitle] = (
+                a["Album-Artist"]?.split(" - ") || ["Unknown", "Unknown"]
+              ).map((s) => s.trim());
+              const div = document.createElement("div");
+              div.className = "album";
+              div.dataset.albumArtist = (a["Album-Artist"] || "").trim();
+              div.dataset.spotifyuri = (a.SpotifyURI || "").trim();
+
+              const infoDiv = document.createElement("div");
+              infoDiv.className = "album-info";
+              infoDiv.innerHTML = `${albumTitle}<br><small>${artist}</small>`;
+
+              const cover = a.CoverURL ? createCoverImg(a.CoverURL) : createNoCover();
+              div.appendChild(cover);
+              div.appendChild(infoDiv);
+
+              div.onclick = () => openAlbumPopup(a, artist, albumTitle);
+
+              albumsWrapper.appendChild(div);
+            });
+
+          yearCol.appendChild(albumsWrapper);
+          container.appendChild(yearCol);
+        });
+
+        // show modal
+        if (filterResultsModalBackdrop) filterResultsModalBackdrop.style.display = "flex";
+        const titleEl = document.getElementById("filterResultsModalTitle");
+        if (titleEl) titleEl.textContent = title;
       }
-    }
 
-    // Logout function
-    function logoutSpotify() {
-      localStorage.removeItem("spotify_access_token");
-      token = null;
-      spotifyUsername = null;
-      updateLoginButton(null);
-    }
+      function openFilterResultsModal(column, value) {
+        let filteredData;
 
-    // ====== SPOTIFY WEB PLAYBACK SDK ======
-    /* Keep this global defined BEFORE the SDK script executes.
- spotify-player.js will call this when it loads. */
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      initPlayerIfPossible();
-    };
+        if (column === "__GENRES__") {
+          filteredData = albumsData.filter((album) => {
+            const allGenres = []
+              .concat(
+                String(album["Genre 1"] || "").split(","),
+                String(album["Genre 2"] || "").split(","),
+                String(album["Genre(s)"] || "").split(",")
+              )
+              .map((s) => s.trim().toLowerCase())
+              .filter(Boolean);
+            return allGenres.includes(String(value).toLowerCase());
+          });
+        } else {
+          filteredData = albumsData.filter((album) => album[column] === value);
+        }
 
-    function initPlayerIfPossible() {
-      if (!window.Spotify || !token || player) return;
+        renderFilteredAlbums(
+          filteredData,
+          column === "Country" ? countryNames[value] || value : value
+        );
 
-      player = new Spotify.Player({
-        name: "Top Albums Web Player",
-        getOAuthToken: (cb) => {
-          cb(token);
-        },
-        volume: 0.7,
-      });
-
-      player.addListener("initialization_error", ({ message }) =>
-        console.error("init_error", message)
-      );
-      player.addListener("authentication_error", ({ message }) =>
-        console.error("auth_error", message)
-      );
-      player.addListener("account_error", ({ message }) =>
-        console.error("account_error", message)
-      );
-      player.addListener("playback_error", ({ message }) =>
-        console.error("playback_error", message)
-      );
-
-      player.addListener("ready", ({ device_id }) => {
-        console.log("Ready with Device ID", device_id);
-        deviceId = device_id;
-        localStorage.setItem("spotify_device_id", deviceId);
-        transferPlaybackToDevice();
-      });
-
-      // Use single, top-level updateBarFromState
-      player.addListener("player_state_changed", (state) => {
-        if (!state) return;
-        updateBarFromState(state);
-
-        // Start or stop the automatic progress updater
-        if (state.paused) stopProgressUpdater();
-        else startProgressUpdater();
-
-        document.getElementById("playPauseBtn").textContent = state.paused
-          ? "▶️"
-          : "⏸️";
-      });
-
-      player.connect();
-    }
-
-    // ====== PROGRESS BAR & TRACK INFO ======
-    function updateBarFromState(state) {
-      const current = state.track_window.current_track;
-      if (!current) return;
-
-      const cover = current.album.images?.[0]?.url || "";
-      const barCover = document.getElementById("barCover");
-      if (cover) {
-        barCover.src = cover;
-        barCover.style.display = "block"; // make sure it shows
-      } else {
-        barCover.removeAttribute("src");
-        barCover.style.display = "none"; // hide if no cover
+        // --- scroll to most recent year ---
+        const container = document.getElementById("filterResultsContainer");
+        const yearColumns = container.querySelectorAll(".year-column");
+        if (yearColumns.length > 0) {
+          const lastYearCol = yearColumns[yearColumns.length - 1];
+          lastYearCol.scrollIntoView({ behavior: "auto", block: "start" });
+        }
       }
-      document.getElementById("barTrack").textContent = current.name || "—";
-      document.getElementById("barArtist").textContent =
-        current.artists?.[0]?.name || "—";
 
-      currentAlbumUri = current.album.uri;
+      function createCoverImg(url) {
+        const img = document.createElement("img");
+        img.src = url;
+        return img;
+      }
+      function createNoCover() {
+        const div = document.createElement("div");
+        div.className = "no-cover";
+        div.innerText = "Album not on Spotify";
+        return div;
+      }
+      function scrollToDecade(decadePrefix) {
+        const container = document.getElementById("yearsContainer");
+        const target = [...container.children].find(
+          (col) => col.firstChild && col.firstChild.innerText.startsWith(decadePrefix)
+        );
+        if (target) target.scrollIntoView({ behavior: "smooth", inline: "start" });
+      }
 
-      const duration = current.duration_ms;
-      totalTimeEl.textContent = formatTime(duration);
+      // ====== AUTH (PKCE) ======
+      function generateRandomString(length) {
+        let text = "";
+        const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (let i = 0; i < length; i++) {
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
+      }
+      async function generateCodeChallenge(codeVerifier) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(codeVerifier);
+        const digest = await window.crypto.subtle.digest("SHA-256", data);
+        return btoa(String.fromCharCode(...new Uint8Array(digest)))
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+      }
+      function authenticateSpotify() {
+        const codeVerifier = generateRandomString(128);
+        localStorage.setItem("code_verifier", codeVerifier);
+        generateCodeChallenge(codeVerifier).then((codeChallenge) => {
+          const scope = "user-modify-playback-state user-read-playback-state streaming user-read-email user-read-private";
+          const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${CONFIG.SPOTIFY_CLIENT_ID}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&code_challenge_method=S256&code_challenge=${codeChallenge}`;
+          window.location = authUrl;
+        });
+      }
+      async function handleAuthRedirect() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        const storedVerifier = localStorage.getItem("code_verifier");
 
-      const pos = state.position;
-      currentTimeEl.textContent = formatTime(pos);
-      progressBar.value = Math.min(100, (pos / duration) * 100);
-    }
+        const existing = localStorage.getItem("spotify_access_token");
+        if (existing) {
+          token = existing;
+          initPlayerIfPossible();
+        }
 
-    progressBar.addEventListener("input", async (e) => {
-      if (!player) return;
-      const percent = e.target.value;
-      const state = await player.getCurrentState();
-      if (!state || !state.track_window.current_track) return;
-      const duration = state.track_window.current_track.duration_ms;
-      const newPos = Math.floor(duration * (percent / 100));
-      player.seek(newPos);
-    });
+        if (code && storedVerifier) {
+          try {
+            const res = await fetch(`${CONFIG.BACKEND_FUNCTION_URL}?code=${encodeURIComponent(code)}&verifier=${encodeURIComponent(storedVerifier)}`);
+            const data = await res.json();
+            if (data.access_token) {
+              token = data.access_token;
+              localStorage.setItem("spotify_access_token", token);
+              localStorage.removeItem("code_verifier");
+              window.history.replaceState({}, document.title, CONFIG.REDIRECT_URI);
+              initPlayerIfPossible();
+            } else {
+              console.error("Spotify token error:", data);
+              alert("Spotify login failed. Check console.");
+            }
+          } catch (err) {
+            console.error("Error fetching Spotify token:", err);
+            alert("Spotify login failed. Check console.");
+          }
+        }
+      }
+      async function fetchSpotifyProfile() {
+        if (!token) return null;
+        try {
+          const resp = await fetch("https://api.spotify.com/v1/me", { headers: { Authorization: `Bearer ${token}` } });
 
-    // ====== FORMAT TIME ======
-    function formatTime(ms) {
-      const totalSec = Math.floor(ms / 1000);
-      const mins = Math.floor(totalSec / 60);
-      const secs = totalSec % 60;
-      return `${mins}:${secs.toString().padStart(2, "0")}`;
-    }
-    //Update the progress bar
-    function startProgressUpdater() {
-      if (progressInterval) clearInterval(progressInterval);
-      progressInterval = setInterval(async () => {
-        if (!player) return;
-        const state = await player.getCurrentState();
-        if (!state || !state.track_window.current_track) return;
+          if (!resp.ok) throw new Error("Spotify API request failed");
+
+          const data = await resp.json();
+          updateLoginButton(data);
+          return data;
+        } catch (e) {
+          console.error("Failed to fetch Spotify profile:", e);
+          updateLoginButton(null);
+          return null;
+        }
+      }
+
+      // Track login state
+      let isLoggedIn = false;
+
+      // Update button state (login/logout)
+      function updateLoginButton(user) {
+        if (user && (user.display_name || user.id)) {
+          isLoggedIn = true;
+          loginBtn.textContent = `Logged in as ${user.display_name || user.id} (Logout)`;
+        } else {
+          isLoggedIn = false;
+          loginBtn.textContent = "Click to login to Spotify";
+        }
+      }
+
+      // Logout function
+      function logoutSpotify() {
+        localStorage.removeItem("spotify_access_token");
+        token = null;
+        spotifyUsername = null;
+        updateLoginButton(null);
+      }
+
+      // ====== SPOTIFY WEB PLAYBACK SDK ======
+      /* Keep this global defined BEFORE the SDK script executes.
+         spotify-player.js will call this when it loads. */
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        console.log("Spotify SDK ready — calling initPlayerIfPossible()");
+        try {
+          initPlayerIfPossible();
+        } catch (err) {
+          console.error("Error in initPlayerIfPossible:", err);
+        }
+      };
+
+      function initPlayerIfPossible() {
+        if (!window.Spotify || !token || player) return;
+
+        player = new Spotify.Player({
+          name: "Top Albums Web Player",
+          getOAuthToken: (cb) => {
+            cb(token);
+          },
+          volume: 0.7,
+        });
+
+        player.addListener("initialization_error", ({ message }) => console.error("init_error", message));
+        player.addListener("authentication_error", ({ message }) => console.error("auth_error", message));
+        player.addListener("account_error", ({ message }) => console.error("account_error", message));
+        player.addListener("playback_error", ({ message }) => console.error("playback_error", message));
+
+        player.addListener("ready", ({ device_id }) => {
+          console.log("Ready with Device ID", device_id);
+          deviceId = device_id;
+          localStorage.setItem("spotify_device_id", deviceId);
+          transferPlaybackToDevice();
+        });
+
+        // Use single, top-level updateBarFromState
+        player.addListener("player_state_changed", (state) => {
+          if (!state) return;
+          updateBarFromState(state);
+
+          // Start or stop the automatic progress updater
+          if (state.paused) stopProgressUpdater();
+          else startProgressUpdater();
+
+          document.getElementById("playPauseBtn").textContent = state.paused ? "▶️" : "⏸️";
+        });
+
+        player.connect();
+      }
+
+      // ====== PROGRESS BAR & TRACK INFO ======
+      function updateBarFromState(state) {
+        const current = state.track_window.current_track;
+        if (!current) return;
+
+        const cover = current.album.images?.[0]?.url || "";
+        const barCover = document.getElementById("barCover");
+        if (cover) {
+          barCover.src = cover;
+          barCover.style.display = "block"; // make sure it shows
+        } else {
+          barCover.removeAttribute("src");
+          barCover.style.display = "none"; // hide if no cover
+        }
+        document.getElementById("barTrack").textContent = current.name || "—";
+        document.getElementById("barArtist").textContent = current.artists?.[0]?.name || "—";
+
+        currentAlbumUri = current.album.uri;
+
+        const duration = current.duration_ms;
+        totalTimeEl.textContent = formatTime(duration);
 
         const pos = state.position;
-        const duration = state.track_window.current_track.duration_ms;
         currentTimeEl.textContent = formatTime(pos);
-        totalTimeEl.textContent = formatTime(duration);
         progressBar.value = Math.min(100, (pos / duration) * 100);
-      }, 500); // updates every 0.5 seconds
-    }
-
-    function stopProgressUpdater() {
-      if (progressInterval) clearInterval(progressInterval);
-    }
-
-    // ====== MODAL ======
-    function showModal() {
-      modalBackdrop.style.display = "flex";
-    }
-    function hideModal() {
-      modalBackdrop.style.display = "none";
-    }
-    async function openAlbumPopup(albumRow, artist, albumTitle) {
-      if (!token) {
-        authenticateSpotify();
-        return;
-      }
-      currentAlbumUri = albumRow.SpotifyURI || null;
-      if (!currentAlbumUri) {
-        alert("No Spotify album URI for this item.");
-        return;
       }
 
-      modalAlbumName.textContent = albumTitle || "—";
-      modalArtistName.textContent = artist || "—";
-      if (albumRow.CoverURL) modalCover.src = albumRow.CoverURL;
-      else modalCover.removeAttribute("src");
+      progressBar.addEventListener("input", async (e) => {
+        if (!player) return;
+        const percent = e.target.value;
+        const state = await player.getCurrentState();
+        if (!state || !state.track_window.current_track) return;
+        const duration = state.track_window.current_track.duration_ms;
+        const newPos = Math.floor(duration * (percent / 100));
+        player.seek(newPos);
+      });
 
-      tracksList.innerHTML = "Loading tracks…";
-      const albumId = uriToId(currentAlbumUri);
-      try {
-        const resp = await fetch(
-          `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const data = await resp.json();
-        const items = data.items || [];
-        if (!items.length) {
-          tracksList.innerHTML =
-            "<div style='color:#bbb'>No tracks found.</div>";
-        } else {
-          tracksList.innerHTML = "";
-          items.forEach((t, idx) => {
-            const div = document.createElement("div");
-            div.className = "track";
-            const mins = Math.floor((t.duration_ms || 0) / 60000);
-            const secs = Math.floor(((t.duration_ms || 0) % 60000) / 1000)
-              .toString()
-              .padStart(2, "0");
-            div.innerHTML = `<div>#${t.track_number || idx + 1} — ${
-              t.name
-            }</div><div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>`;
-            div.onclick = () => startTrackPlayback(currentAlbumUri, t.uri);
-            tracksList.appendChild(div);
-          });
+      // ====== FORMAT TIME ======
+      function formatTime(ms) {
+        const totalSec = Math.floor(ms / 1000);
+        const mins = Math.floor(totalSec / 60);
+        const secs = totalSec % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+      }
+
+      // Update the progress bar
+      function startProgressUpdater() {
+        if (progressInterval) clearInterval(progressInterval);
+        progressInterval = setInterval(async () => {
+          if (!player) return;
+          const state = await player.getCurrentState();
+          if (!state || !state.track_window.current_track) return;
+
+          const pos = state.position;
+          const duration = state.track_window.current_track.duration_ms;
+          currentTimeEl.textContent = formatTime(pos);
+          totalTimeEl.textContent = formatTime(duration);
+          progressBar.value = Math.min(100, (pos / duration) * 100);
+        }, 500); // updates every 0.5 seconds
+      }
+
+      function stopProgressUpdater() {
+        if (progressInterval) clearInterval(progressInterval);
+      }
+
+      // ====== MODAL ======
+      function showModal() {
+        modalBackdrop.style.display = "flex";
+      }
+      function hideModal() {
+        modalBackdrop.style.display = "none";
+      }
+      async function openAlbumPopup(albumRow, artist, albumTitle) {
+        if (!token) {
+          authenticateSpotify();
+          return;
         }
-      } catch (e) {
-        console.error(e);
-        tracksList.innerHTML =
-          "<div style='color:#f77'>Failed to load tracks</div>";
+        currentAlbumUri = albumRow.SpotifyURI || null;
+        if (!currentAlbumUri) {
+          alert("No Spotify album URI for this item.");
+          return;
+        }
+
+        modalAlbumName.textContent = albumTitle || "—";
+        modalArtistName.textContent = artist || "—";
+        if (albumRow.CoverURL) modalCover.src = albumRow.CoverURL;
+        else modalCover.removeAttribute("src");
+
+        tracksList.innerHTML = "Loading tracks…";
+        const albumId = uriToId(currentAlbumUri);
+        try {
+          const resp = await fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks?limit=50`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await resp.json();
+          const items = data.items || [];
+          if (!items.length) {
+            tracksList.innerHTML = "<div style='color:#bbb'>No tracks found.</div>";
+          } else {
+            tracksList.innerHTML = "";
+            items.forEach((t, idx) => {
+              const div = document.createElement("div");
+              div.className = "track";
+              const mins = Math.floor((t.duration_ms || 0) / 60000);
+              const secs = Math.floor(((t.duration_ms || 0) % 60000) / 1000)
+                .toString()
+                .padStart(2, "0");
+              div.innerHTML = `<div>#${t.track_number || idx + 1} — ${t.name}</div><div style="color:#aaa;font-size:12px;">${mins}:${secs}</div>`;
+              div.onclick = () => startTrackPlayback(currentAlbumUri, t.uri);
+              tracksList.appendChild(div);
+            });
+          }
+        } catch (e) {
+          console.error(e);
+          tracksList.innerHTML = "<div style='color:#f77'>Failed to load tracks</div>";
+        }
+
+        showModal();
       }
 
-      showModal();
-    }
-
-    // ====== PLAYBACK HELPERS ======
-    function uriToId(uri) {
-      if (!uri) return null;
-      if (uri.startsWith("spotify:album:")) return uri.split(":")[2];
-      const match = uri.match(/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
-      if (match) return match[1];
-      return null;
-    }
-    async function startAlbumPlayback(albumUri) {
-      if (!token || !deviceId) return;
-      await fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(
-          deviceId
-        )}`,
-        {
+      // ====== PLAYBACK HELPERS ======
+      function uriToId(uri) {
+        if (!uri) return null;
+        if (uri.startsWith("spotify:album:")) return uri.split(":")[2];
+        const match = uri.match(/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
+        if (match) return match[1];
+        return null;
+      }
+      async function startAlbumPlayback(albumUri) {
+        if (!token || !deviceId) return;
+        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ context_uri: albumUri }),
-        }
-      ).catch((e) => console.error(e));
-    }
-    async function startTrackPlayback(albumUri, trackUri) {
-      if (!token || !deviceId) return;
-      const offset = trackUri ? { uri: trackUri } : undefined;
-      await fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(
-          deviceId
-        )}`,
-        {
+        }).catch((e) => console.error(e));
+      }
+      async function startTrackPlayback(albumUri, trackUri) {
+        if (!token || !deviceId) return;
+        const offset = trackUri ? { uri: trackUri } : undefined;
+        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ context_uri: albumUri, offset: offset }),
-        }
-      ).catch((e) => console.error(e));
-    }
-
-    // ====== LAYOUT SYNC ======
-    function syncRankMetrics() {
-      const firstAlbum = document.querySelector(".albums-wrapper .album");
-      const rankScroller = document.getElementById("rankScroller");
-      const firstYearTitle = document.querySelector(".year-title");
-      const yearsContainer = document.getElementById("yearsContainer");
-      if (!firstAlbum || !rankScroller || !firstYearTitle || !yearsContainer)
-        return;
-      const albumContentH = firstAlbum.getBoundingClientRect().height;
-      const albumMarginTop = parseFloat(
-        getComputedStyle(firstAlbum).marginTop || "0"
-      );
-      const totalRowH = albumContentH + albumMarginTop;
-      rankScroller.style.setProperty("--row-h", totalRowH + "px");
-      rankScroller.style.gridAutoRows = totalRowH + "px";
-      document.documentElement.style.setProperty("--row-h", totalRowH + "px");
-      const yearTitleH = firstYearTitle.getBoundingClientRect().height;
-      const wrapperMarginTop = parseFloat(
-        getComputedStyle(firstAlbum.parentElement).marginTop || "0"
-      );
-      const rowsOffsetFixed = yearTitleH + wrapperMarginTop;
-      rankScroller.style.paddingTop = rowsOffsetFixed + "px";
-      const yearsRect = yearsContainer.getBoundingClientRect();
-      const firstAlbumRect = firstAlbum.getBoundingClientRect();
-      const rowsOffsetForCSS = firstAlbumRect.top - yearsRect.top;
-      document.documentElement.style.setProperty(
-        "--rows-offset",
-        Math.max(0, rowsOffsetForCSS) + "px"
-      );
-      const totalAlbums = document.querySelectorAll(
-        "#rankScroller .rank-number"
-      ).length;
-      const rowsToCover = Math.min(totalAlbums, 20);
-      const stripeCoverHeight = rowsToCover * totalRowH;
-      document.documentElement.style.setProperty(
-        "--stripe-block",
-        totalRowH * 20 + "px"
-      );
-      document.documentElement.style.setProperty(
-        "--stripe-cover",
-        stripeCoverHeight + "px"
-      );
-    }
-    window.addEventListener(
-      "scroll",
-      () => {
-        const rankScroller = document.getElementById("rankScroller");
-        const offset = parseFloat(rankScroller.dataset.offsetTop || 0);
-        rankScroller.style.transform = `translateY(${
-          offset - window.scrollY
-        }px)`;
-      },
-      { passive: true }
-    );
-    window.addEventListener("resize", syncRankMetrics);
-
-    // ====== PLAYER CONNECT ======
-    async function transferPlaybackToDevice() {
-      try {
-        await fetch("https://api.spotify.com/v1/me/player", {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ device_ids: [deviceId], play: false }),
-        });
-      } catch (e) {
-        console.error("transferPlaybackToDevice", e);
+        }).catch((e) => console.error(e));
       }
-    }
 
-    // ====== BOOT ======
-    window.onload = async () => {
-      await handleAuthRedirect(); // only handles redirect after Spotify login
+      // ====== LAYOUT SYNC ======
+      function syncRankMetrics() {
+        const firstAlbum = document.querySelector(".albums-wrapper .album");
+        const rankScroller = document.getElementById("rankScroller");
+        const firstYearTitle = document.querySelector(".year-title");
+        const yearsContainer = document.getElementById("yearsContainer");
+        if (!firstAlbum || !rankScroller || !firstYearTitle || !yearsContainer) return;
+        const albumContentH = firstAlbum.getBoundingClientRect().height;
+        const albumMarginTop = parseFloat(getComputedStyle(firstAlbum).marginTop || "0");
+        const totalRowH = albumContentH + albumMarginTop;
+        rankScroller.style.setProperty("--row-h", totalRowH + "px");
+        rankScroller.style.gridAutoRows = totalRowH + "px";
+        document.documentElement.style.setProperty("--row-h", totalRowH + "px");
+        const yearTitleH = firstYearTitle.getBoundingClientRect().height;
+        const wrapperMarginTop = parseFloat(getComputedStyle(firstAlbum.parentElement).marginTop || "0");
+        const rowsOffsetFixed = yearTitleH + wrapperMarginTop;
+        rankScroller.style.paddingTop = rowsOffsetFixed + "px";
+        const yearsRect = yearsContainer.getBoundingClientRect();
+        const firstAlbumRect = firstAlbum.getBoundingClientRect();
+        const rowsOffsetForCSS = firstAlbumRect.top - yearsRect.top;
+        document.documentElement.style.setProperty("--rows-offset", Math.max(0, rowsOffsetForCSS) + "px");
+        const totalAlbums = document.querySelectorAll("#rankScroller .rank-number").length;
+        const rowsToCover = Math.min(totalAlbums, 20);
+        const stripeCoverHeight = rowsToCover * totalRowH;
+        document.documentElement.style.setProperty("--stripe-block", totalRowH * 20 + "px");
+        document.documentElement.style.setProperty("--stripe-cover", stripeCoverHeight + "px");
+      }
+      window.addEventListener(
+        "scroll",
+        () => {
+          const rankScroller = document.getElementById("rankScroller");
+          const offset = parseFloat(rankScroller.dataset.offsetTop || 0);
+          rankScroller.style.transform = `translateY(${offset - window.scrollY}px)`;
+        },
+        { passive: true }
+      );
+      window.addEventListener("resize", syncRankMetrics);
 
-      // Check if already logged in
-      const storedToken = localStorage.getItem("spotify_access_token");
-      if (storedToken) {
-        token = storedToken;
-        const profile = await fetchSpotifyProfile();
-        if (!profile) {
-          // Token exists but profile fetch failed
+      // ====== PLAYER CONNECT ======
+      async function transferPlaybackToDevice() {
+        try {
+          await fetch("https://api.spotify.com/v1/me/player", {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ device_ids: [deviceId], play: false }),
+          });
+        } catch (e) {
+          console.error("transferPlaybackToDevice", e);
+        }
+      }
+
+      // ====== BOOT ======
+      window.onload = async () => {
+        await handleAuthRedirect(); // only handles redirect after Spotify login
+
+        // Check if already logged in
+        const storedToken = localStorage.getItem("spotify_access_token");
+        if (storedToken) {
+          token = storedToken;
+          const profile = await fetchSpotifyProfile();
+          if (!profile) {
+            // Token exists but profile fetch failed
+            loginBtn.textContent = "Click to login to Spotify";
+          }
+        } else {
           loginBtn.textContent = "Click to login to Spotify";
         }
-      } else {
-        loginBtn.textContent = "Click to login to Spotify";
-      }
 
-      await fetchAlbums(); // load albums independently of login
-    };
-    /* ===================== NEW FILTER BUTTONS (UPGRADED) ===================== */
-    // 1️⃣ Create the filter buttons
-    const header = document.querySelector("header");
-    const decadeButtons = header.querySelectorAll(".decade-btn");
+        await fetchAlbums(); // load albums independently of login
+      };
 
-    const countryBtn = document.createElement("button");
-    countryBtn.id = "countryBtn";
-    countryBtn.className = "filter-btn decade-btn";
-    countryBtn.style.background = "silver";
-    countryBtn.textContent = "Artist's Country";
-    header.insertBefore(
-      countryBtn,
-      decadeButtons[decadeButtons.length - 1].nextSibling
-    );
+      /* ===================== NEW FILTER BUTTONS (UPGRADED) ===================== */
+      // 1️⃣ Create the filter buttons
+      const header = document.querySelector("header");
+      const decadeButtons = header.querySelectorAll(".decade-btn");
 
-    const genreBtn = document.createElement("button");
-    genreBtn.id = "genreBtn";
-    genreBtn.className = "filter-btn decade-btn";
-    genreBtn.style.background = "gold";
-    genreBtn.textContent = "Music Genre";
-    header.insertBefore(genreBtn, countryBtn.nextSibling);
+      const countryBtn = document.createElement("button");
+      countryBtn.id = "countryBtn";
+      countryBtn.className = "filter-btn decade-btn";
+      countryBtn.style.background = "silver";
+      countryBtn.textContent = "Artist's Country";
+      header.insertBefore(countryBtn, decadeButtons[decadeButtons.length - 1].nextSibling);
 
-    // 2️⃣ Filter modal
-    const filterModalBackdrop = document.createElement("div");
-    filterModalBackdrop.id = "filterModalBackdrop";
-    filterModalBackdrop.className = "modal-backdrop";
-    filterModalBackdrop.innerHTML = `
+      const genreBtn = document.createElement("button");
+      genreBtn.id = "genreBtn";
+      genreBtn.className = "filter-btn decade-btn";
+      genreBtn.style.background = "gold";
+      genreBtn.textContent = "Music Genre";
+      header.insertBefore(genreBtn, countryBtn.nextSibling);
+
+      // 2️⃣ Filter modal (create and append only once)
+      const filterModalBackdrop = document.createElement("div");
+      filterModalBackdrop.id = "filterModalBackdrop";
+      filterModalBackdrop.className = "modal-backdrop";
+      filterModalBackdrop.innerHTML = `
 <div class="modal">
   <div class="modal-header"><div class="modal-title" id="filterModalTitle"></div></div>
   <div class="filter-list" id="filterList"></div>
@@ -836,22 +766,19 @@
   </div>
 </div>
 `;
-    document.body.appendChild(filterModalBackdrop);
+      document.body.appendChild(filterModalBackdrop);
 
-    const filterList = document.getElementById("filterList");
-    const filterModalTitle = document.getElementById("filterModalTitle");
-    const closeFilterModalBtn = document.getElementById(
-      "closeFilterModalBtn"
-    );
+      const filterList = document.getElementById("filterList");
+      const filterModalTitle = document.getElementById("filterModalTitle");
+      const closeFilterModalBtn = document.getElementById("closeFilterModalBtn");
 
-    closeFilterModalBtn.addEventListener(
-      "click",
-      () => (filterModalBackdrop.style.display = "none")
-    );
-    const filterResultsModalBackdrop = document.createElement("div");
-    filterResultsModalBackdrop.id = "filterResultsModalBackdrop";
-    filterResultsModalBackdrop.className = "modal-backdrop";
-    filterResultsModalBackdrop.innerHTML = `
+      closeFilterModalBtn.addEventListener("click", () => (filterModalBackdrop.style.display = "none"));
+
+      // Create filter results modal (only once)
+      const filterResultsModalBackdrop = document.createElement("div");
+      filterResultsModalBackdrop.id = "filterResultsModalBackdrop";
+      filterResultsModalBackdrop.className = "modal-backdrop";
+      filterResultsModalBackdrop.innerHTML = `
 <div class="modal" id="filterResultsModal" style="max-width: 90%; max-height: 90%; overflow: auto;">
   <div class="modal-header">
     <div class="modal-title" id="filterResultsModalTitle"></div>
@@ -862,202 +789,186 @@
   </div>
 </div>
 `;
-    document.body.appendChild(filterResultsModalBackdrop);
+      document.body.appendChild(filterResultsModalBackdrop);
 
-    document
-      .getElementById("closeFilterResultsBtn")
-      .addEventListener("click", () => {
+      document.getElementById("closeFilterResultsBtn").addEventListener("click", () => {
         filterResultsModalBackdrop.style.display = "none";
       });
 
-    // 3️⃣ Country code → full name
-    const countryNames = {
-      PT: "Portugal",
-      ES: "Spain",
-      FR: "France",
-      DE: "Germany",
-      IT: "Italy",
-      US: "USA",
-      UK: "United Kingdom",
-      CA: "Canada",
-      AU: "Australia",
-      BR: "Brazil",
-      AR: "Argentina",
-      CL: "Chile",
-      PE: "Peru",
-      MX: "Mexico",
-      CO: "Colombia",
-      VE: "Venezuela",
-      EC: "Ecuador",
-      BO: "Bolivia",
-      PY: "Paraguay",
-      UY: "Uruguay",
-      DO: "Dominican Republic",
-      CR: "Costa Rica",
-      GT: "Guatemala",
-      HN: "Honduras",
-      SV: "El Salvador",
-      NI: "Nicaragua",
-      PA: "Panama",
-      CU: "Cuba",
-      JM: "Jamaica",
-      HT: "Haiti",
-      BS: "Bahamas",
-      BB: "Barbados",
-      LC: "Saint Lucia",
-      VC: "Saint Vincent and the Grenadines",
-      GD: "Grenada",
-      TT: "Trinidad and Tobago",
-      BZ: "Belize",
-      GY: "Guyana",
-      SR: "Suriname",
-      AO: "Angola",
-      AT: "Austria",
-      IS: "Iceland",
-      ML: "Mali",
-      NZ: "New Zealand",
-      PR: "Puerto Rico",
-      SE: "Sweden",
-      SN: "Senegal",
-      BE: "Belgium",
-      IE: "Ireland",
-      JP: "Japan",
-      NL: "Netherlands",
-      NO: "Norway",
-      CV: "Cabo Verde",
-    };
+      // 3️⃣ Country code → full name
+      const countryNames = {
+        PT: "Portugal",
+        ES: "Spain",
+        FR: "France",
+        DE: "Germany",
+        IT: "Italy",
+        US: "USA",
+        UK: "United Kingdom",
+        CA: "Canada",
+        AU: "Australia",
+        BR: "Brazil",
+        AR: "Argentina",
+        CL: "Chile",
+        PE: "Peru",
+        MX: "Mexico",
+        CO: "Colombia",
+        VE: "Venezuela",
+        EC: "Ecuador",
+        BO: "Bolivia",
+        PY: "Paraguay",
+        UY: "Uruguay",
+        DO: "Dominican Republic",
+        CR: "Costa Rica",
+        GT: "Guatemala",
+        HN: "Honduras",
+        SV: "El Salvador",
+        NI: "Nicaragua",
+        PA: "Panama",
+        CU: "Cuba",
+        JM: "Jamaica",
+        HT: "Haiti",
+        BS: "Bahamas",
+        BB: "Barbados",
+        LC: "Saint Lucia",
+        VC: "Saint Vincent and the Grenadines",
+        GD: "Grenada",
+        TT: "Trinidad and Tobago",
+        BZ: "Belize",
+        GY: "Guyana",
+        SR: "Suriname",
+        AO: "Angola",
+        AT: "Austria",
+        IS: "Iceland",
+        ML: "Mali",
+        NZ: "New Zealand",
+        PR: "Puerto Rico",
+        SE: "Sweden",
+        SN: "Senegal",
+        BE: "Belgium",
+        IE: "Ireland",
+        JP: "Japan",
+        NL: "Netherlands",
+        NO: "Norway",
+        CV: "Cabo Verde",
+      };
 
-    // 4️⃣ Open filter modal
-    function openFilterModal(column) {
-      filterList.innerHTML = "";
-      filterModalTitle.textContent =
-        column === "Country" ? "Select Artist's Country" : "Select Music Genre";
+      // 4️⃣ Open filter modal
+      function openFilterModal(column) {
+        filterList.innerHTML = "";
+        filterModalTitle.textContent = column === "Country" ? "Select Artist's Country" : "Select Music Genre";
 
-      let values;
+        let values;
 
-      if (column === "__GENRES__") {
-        const set = new Set();
-        albumsData.forEach((a) => {
-          ["Genre 1", "Genre 2", "Genre(s)"].forEach((key) => {
-            const raw = a[key];
-            if (!raw) return;
-            String(raw)
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-              .forEach((g) => set.add(g));
+        if (column === "__GENRES__") {
+          const set = new Set();
+          albumsData.forEach((a) => {
+            ["Genre 1", "Genre 2", "Genre(s)"].forEach((key) => {
+              const raw = a[key];
+              if (!raw) return;
+              String(raw)
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .forEach((g) => set.add(g));
+            });
           });
+          values = Array.from(set).sort((a, b) => a.localeCompare(b));
+        } else {
+          values = [...new Set(albumsData.map((a) => a[column]).filter((v) => v))].sort();
+        }
+
+        values.forEach((val) => {
+          const displayVal = column === "Country" && countryNames[val] ? countryNames[val] : val;
+
+          const btn = document.createElement("button");
+          btn.className = "filter-btn-item";
+          btn.textContent = displayVal;
+          btn.onclick = () => {
+            openFilterResultsModal(column, val);
+            filterModalBackdrop.style.display = "none";
+          };
+
+          filterList.appendChild(btn);
         });
-        values = Array.from(set).sort((a, b) => a.localeCompare(b));
-      } else {
-        values = [
-          ...new Set(albumsData.map((a) => a[column]).filter((v) => v)),
-        ].sort();
+
+        filterModalBackdrop.style.display = "flex";
       }
 
-      values.forEach((val) => {
-        const displayVal =
-          column === "Country" && countryNames[val] ? countryNames[val] : val;
+      // 5️⃣ Control pop-ups with keyboard
+      function closeTopmostPopupOnEsc(e) {
+        // Only act on Escape
+        if (e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
 
-        const btn = document.createElement("button");
-        btn.className = "filter-btn-item";
-        btn.textContent = displayVal;
-        btn.onclick = () => {
-          openFilterResultsModal(column, val);
-          filterModalBackdrop.style.display = "none";
-        };
+        // Ignore Escape if typing in input/textarea/contenteditable
+        const active = document.activeElement;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
 
-        filterList.appendChild(btn);
+        // Candidate popups/backdrops
+        const ids = ["albumModalBackdrop", "filterResultsModalBackdrop", "filterModalBackdrop"];
+
+        // Collect visible popups and their z-index
+        const visible = ids
+          .map((id) => document.getElementById(id))
+          .filter((el) => el && el.style.display !== "none" && el.offsetParent !== null)
+          .map((el) => {
+            const z = parseInt(getComputedStyle(el).zIndex, 10);
+            return { el, z: Number.isFinite(z) ? z : 0 };
+          });
+
+        if (visible.length === 0) return; // nothing open
+
+        // Topmost popup = highest z-index
+        visible.sort((a, b) => a.z - b.z);
+        const top = visible[visible.length - 1].el;
+        top.style.display = "none";
+
+        // Optional cleanup
+        if (top.id === "filterResultsModalBackdrop") {
+          const results = document.getElementById("filterResultsContainer");
+          if (results) {
+            results.scrollTop = 0;
+            results.scrollLeft = 0;
+          }
+        }
+        if (top.id === "albumModalBackdrop") {
+          const tracksList = document.getElementById("tracksList");
+          if (tracksList) tracksList.innerHTML = "";
+        }
+      }
+
+      // Attach the Esc listener once
+      document.addEventListener("keydown", closeTopmostPopupOnEsc);
+
+      // 7️⃣ Event listeners
+
+      // Open filter modals
+      countryBtn.addEventListener("click", () => openFilterModal("Country"));
+      genreBtn.addEventListener("click", () => openFilterModal("__GENRES__"));
+
+      // Clicking outside highlighted albums or modals (defensive)
+      document.addEventListener("click", (e) => {
+        if (e.target.closest(".albums-wrapper .album.highlighted")) return;
+        if (e.target.closest("#filterModalBackdrop") || e.target.closest(".filter-btn")) return;
+        // No clearFilter call needed here to avoid errors
       });
 
-      filterModalBackdrop.style.display = "flex";
-    }
-// 5️⃣ Control pop-ups with keyboard
-function closeTopmostPopupOnEsc(e) {
-  // Only act on Escape
-  if (e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
+      // Clicking outside filter results closes only the results modal
+      if (filterResultsModalBackdrop) {
+        filterResultsModalBackdrop.addEventListener("click", (e) => {
+          if (e.target === filterResultsModalBackdrop) {
+            filterResultsModalBackdrop.style.display = "none";
 
-  // Ignore Escape if typing in input/textarea/contenteditable
-  const active = document.activeElement;
-  if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
-
-  // Candidate popups/backdrops
-  const ids = [
-    "albumModalBackdrop",
-    "filterResultsModalBackdrop",
-    "filterModalBackdrop"
-  ];
-
-  // Collect visible popups and their z-index
-  const visible = ids
-    .map(id => document.getElementById(id))
-    .filter(el => el && el.style.display !== "none" && el.offsetParent !== null)
-    .map(el => {
-      const z = parseInt(getComputedStyle(el).zIndex, 10);
-      return { el, z: Number.isFinite(z) ? z : 0 };
-    });
-
-  if (visible.length === 0) return; // nothing open
-
-  // Topmost popup = highest z-index
-  visible.sort((a, b) => a.z - b.z);
-  const top = visible[visible.length - 1].el;
-  top.style.display = "none";
-
-  // Optional cleanup
-  if (top.id === "filterResultsModalBackdrop") {
-    const results = document.getElementById("filterResultsContainer");
-    if (results) {
-      results.scrollTop = 0;
-      results.scrollLeft = 0;
-    }
-  }
-  if (top.id === "albumModalBackdrop") {
-    const tracksList = document.getElementById("tracksList");
-    if (tracksList) tracksList.innerHTML = "";
-  }
-}
-
-// Attach the Esc listener once
-document.addEventListener("keydown", closeTopmostPopupOnEsc);
-
-// 7️⃣ Event listeners
-
-// Open filter modals
-countryBtn.addEventListener("click", () => openFilterModal("Country"));
-genreBtn.addEventListener("click", () => openFilterModal("__GENRES__"));
-
-// Clicking outside highlighted albums or modals (defensive)
-document.addEventListener("click", (e) => {
-  if (e.target.closest(".albums-wrapper .album.highlighted")) return;
-  if (e.target.closest("#filterModalBackdrop") || e.target.closest(".filter-btn")) return;
-  // No clearFilter call needed here to avoid errors
-});
-
-// Clicking outside filter results closes only the results modal
-const filterResultsModalBackdrop = document.getElementById("filterResultsModalBackdrop");
-if (filterResultsModalBackdrop) {
-  filterResultsModalBackdrop.addEventListener("click", (e) => {
-    if (e.target === filterResultsModalBackdrop) {
-      filterResultsModalBackdrop.style.display = "none";
-
-      const results = document.getElementById("filterResultsContainer");
-      if (results) {
-        results.scrollTop = 0;
-        results.scrollLeft = 0;
+            const results = document.getElementById("filterResultsContainer");
+            if (results) {
+              results.scrollTop = 0;
+              results.scrollLeft = 0;
+            }
+          }
+        });
       }
-    }
-  });
-}
+    </script>
 
-  </script>
-
-  <!-- Move Spotify SDK load to AFTER the main script so the global callback exists when the SDK runs -->
-  <script src="https://sdk.scdn.co/spotify-player.js"></script>
-</body>
+    <!-- Move Spotify SDK load to AFTER the main script so the global callback exists when the SDK runs -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  </body>
 </html>
-
-
-
-
-
